@@ -21,6 +21,7 @@ class ProductReview extends Model
         'comment',
         'photo',
         'reply',
+        'is_read',
     ];
 
     protected $appends = [
@@ -49,6 +50,7 @@ class ProductReview extends Model
             'user_id' => 'integer',
             'order_id' => 'integer',
             'rating' => 'integer',
+            'is_read' => 'boolean',
         ];
     }
 

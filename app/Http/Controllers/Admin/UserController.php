@@ -50,7 +50,7 @@ class UserController extends Controller
             'email'     => ['required', 'email', 'max:150', 'unique:users,email'],
             'phone'     => ['nullable', 'string', 'max:30'],
             'role'      => ['required', Rule::in(['superadmin', 'admin', 'customer'])],
-            'password'  => ['required', 'string', 'min:8', 'confirmed'],
+            'password'  => ['required', 'string', 'min:6', 'confirmed'],
             'is_active' => ['boolean'],
             'photo'     => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
@@ -80,24 +80,33 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        $currentUser = Auth::guard('web')->user();
+        if ($user->role === 'superadmin' && $currentUser->role !== 'superadmin') {
+            abort(403, 'Hanya Superadmin yang dapat mengedit data Superadmin.');
+        }
+
         return view('admin.users.edit', compact('user'));
     }
 
     public function update(Request $request, User $user)
     {
+        $currentUser = Auth::guard('web')->user();
+        if ($user->role === 'superadmin' && $currentUser->role !== 'superadmin') {
+            abort(403, 'Hanya Superadmin yang dapat mengubah data Superadmin.');
+        }
+
         $validated = $request->validate([
             'name'      => ['required', 'string', 'max:100'],
             'email'     => ['required', 'email', 'max:150', Rule::unique('users')->ignore($user->id)],
             'phone'     => ['nullable', 'string', 'max:30'],
             'role'      => ['required', Rule::in(['superadmin', 'admin', 'customer'])],
-            'password'  => ['nullable', 'string', 'min:8', 'confirmed'],
+            'password'  => ['nullable', 'string', 'min:6', 'confirmed'],
             'is_active' => ['boolean'],
             'photo'     => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
-        $currentUser = Auth::guard('web')->user();
-        if (($validated['role'] === 'superadmin' || $user->role === 'superadmin') && $currentUser->role !== 'superadmin') {
-            return back()->with('error', 'Hanya Superadmin yang dapat mengubah role Superadmin.');
+        if ($validated['role'] === 'superadmin' && $currentUser->role !== 'superadmin') {
+            abort(403, 'Hanya Superadmin yang dapat memberikan role Superadmin.');
         }
 
         $data = [
@@ -132,8 +141,13 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        if ($user->id === Auth::guard('web')->id()) {
-            return back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
+        $currentUser = Auth::guard('web')->user();
+        if ($user->role === 'superadmin' && $currentUser->role !== 'superadmin') {
+            abort(403, 'Hanya Superadmin yang dapat menghapus akun Superadmin.');
+        }
+
+        if ($user->id === $currentUser->id) {
+            abort(403, 'Anda tidak dapat menghapus akun Anda sendiri.');
         }
 
         if ($user->photo) {
@@ -146,8 +160,13 @@ class UserController extends Controller
 
     public function toggleActive(User $user)
     {
-        if ($user->id === Auth::guard('web')->id()) {
-            return back()->with('error', 'Anda tidak dapat menonaktifkan akun Anda sendiri.');
+        $currentUser = Auth::guard('web')->user();
+        if ($user->role === 'superadmin' && $currentUser->role !== 'superadmin') {
+            abort(403, 'Hanya Superadmin yang dapat mengubah status akun Superadmin.');
+        }
+
+        if ($user->id === $currentUser->id) {
+            abort(403, 'Anda tidak dapat menonaktifkan akun Anda sendiri.');
         }
 
         $user->update(['is_active' => !$user->is_active]);
@@ -161,7 +180,7 @@ class UserController extends Controller
         $currentUser = Auth::guard('web')->user();
 
         if ($user->role === 'superadmin' && $currentUser->role !== 'superadmin') {
-            return back()->with('error', 'Hanya Superadmin yang dapat me-reset password akun Superadmin.');
+            abort(403, 'Hanya Superadmin yang dapat me-reset password akun Superadmin.');
         }
 
         $user->update([

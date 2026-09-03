@@ -7,140 +7,6 @@
 @endsection
 
 @section('content')
-<style>
-    .user-stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-
-    .user-stat-card {
-        background: var(--bg-card, #ffffff);
-        border-radius: 16px;
-        padding: 18px 20px;
-        border: 1px solid var(--border, #e2e8f0);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-        display: flex;
-        align-items: center;
-        gap: 14px;
-    }
-
-    .user-stat-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        flex-shrink: 0;
-    }
-
-    .user-filter-card {
-        background: var(--bg-card, #ffffff);
-        border-radius: 16px;
-        border: 1px solid var(--border, #e2e8f0);
-        padding: 16px 20px;
-        margin-bottom: 24px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
-    }
-
-    .filter-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        align-items: center;
-    }
-
-    .filter-item {
-        flex: 1 1 200px;
-    }
-
-    .filter-btn-group {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .user-card-wrapper {
-        background: var(--bg-card, #ffffff);
-        border-radius: 16px;
-        border: 1px solid var(--border, #e2e8f0);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-        overflow: hidden;
-    }
-
-    .user-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 20px 24px;
-        border-bottom: 1px solid var(--border, #f1f5f9);
-    }
-
-    .table-wrapper-custom {
-        padding: 0;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    /* Mobile Cards vs Desktop Table */
-    .desktop-table-container {
-        display: block;
-    }
-
-    .mobile-user-grid {
-        display: none;
-        padding: 16px;
-        gap: 14px;
-        flex-direction: column;
-    }
-
-    .mobile-user-card {
-        background: var(--bg-card, #ffffff);
-        border: 1px solid var(--border, #e2e8f0);
-        border-radius: 14px;
-        padding: 16px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    }
-
-    @media (max-width: 768px) {
-        .desktop-table-container {
-            display: none;
-        }
-
-        .mobile-user-grid {
-            display: flex;
-        }
-
-        .user-card-header {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 14px;
-            padding: 16px;
-        }
-
-        .user-card-header .btn {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .filter-item {
-            flex: 1 1 100%;
-        }
-
-        .filter-btn-group {
-            width: 100%;
-        }
-
-        .filter-btn-group .btn {
-            flex: 1;
-            justify-content: center;
-        }
-    }
-</style>
-
 <!-- Stats Grid -->
 <div class="user-stats-grid">
     <div class="user-stat-card">
@@ -278,6 +144,7 @@
                                 <iconify-icon icon="lucide:message-square" style="font-size: 16px;"></iconify-icon>
                             </a>
                             @endif
+                            @if($user->role !== 'superadmin' || auth()->user()->role === 'superadmin')
                             <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-secondary btn-sm btn-icon" title="Edit">
                                 <iconify-icon icon="flat-color-icons:edit-image" style="font-size: 16px;"></iconify-icon>
                             </a>
@@ -287,7 +154,6 @@
                                     <iconify-icon icon="{{ $user->is_active ? 'flat-color-icons:cancel' : 'flat-color-icons:ok' }}" style="font-size: 16px;"></iconify-icon>
                                 </button>
                             </form>
-                            @if($user->role !== 'superadmin' || auth()->user()->role === 'superadmin')
                             <form method="POST" action="{{ route('admin.users.reset-password', $user) }}" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin me-reset password user {{ $user->name }} menjadi \'password\'?')">
                                 @csrf
                                 <button type="submit" class="btn btn-secondary btn-sm btn-icon" title="Reset Password">
@@ -346,6 +212,7 @@
                         <iconify-icon icon="lucide:message-square" style="font-size: 15px;"></iconify-icon>
                     </a>
                     @endif
+                    @if($user->role !== 'superadmin' || auth()->user()->role === 'superadmin')
                     <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-secondary btn-sm btn-icon" title="Edit">
                         <iconify-icon icon="flat-color-icons:edit-image" style="font-size: 15px;"></iconify-icon>
                     </a>
@@ -355,7 +222,6 @@
                             <iconify-icon icon="{{ $user->is_active ? 'flat-color-icons:cancel' : 'flat-color-icons:ok' }}" style="font-size: 15px;"></iconify-icon>
                         </button>
                     </form>
-                    @if($user->role !== 'superadmin' || auth()->user()->role === 'superadmin')
                     <form method="POST" action="{{ route('admin.users.reset-password', $user) }}" style="display:inline;" onsubmit="return confirm('Reset password user {{ $user->name }}?')">
                         @csrf
                         <button type="submit" class="btn btn-secondary btn-sm btn-icon" title="Reset Password">

@@ -24,21 +24,25 @@
                 @endif
             </div>
             <div>
-                <span class="card-title">✏️ Edit: {{ $user->name }}</span>
+                <span class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                    <iconify-icon icon="flat-color-icons:edit-image" style="font-size: 22px;"></iconify-icon> Edit: {{ $user->name }}
+                </span>
                 <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
                     ID #{{ $user->id }} · Bergabung {{ $user->created_at->format('d M Y') }}
                 </div>
             </div>
         </div>
-        <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">← Kembali</a>
+        <a href="{{ route('admin.users.index') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <iconify-icon icon="flat-color-icons:previous"></iconify-icon> Kembali
+        </a>
     </div>
     <div class="card-body">
         <form id="userEditForm" method="POST" action="{{ route('admin.users.update', $user) }}" enctype="multipart/form-data">
             @csrf @method('PUT')
 
             {{-- ── Foto Profil ── --}}
-            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--text-muted); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--border);">
-                🖼️ Foto Profil
+            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--text-muted); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:6px;">
+                <iconify-icon icon="flat-color-icons:picture" style="font-size: 16px;"></iconify-icon> Foto Profil
             </div>
 
             <div class="form-group">
@@ -59,7 +63,7 @@
                         <label style="cursor:pointer;">
                             <input type="file" name="photo" id="photoInput" accept="image/jpg,image/jpeg,image/png,image/webp"
                                    style="display:none;" onchange="previewAvatar(this)">
-                            <span class="btn btn-secondary">📷 Ganti Foto</span>
+                            <span class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;"><iconify-icon icon="flat-color-icons:add-image"></iconify-icon> Ganti Foto</span>
                         </label>
                         <div style="font-size:11px; color:var(--text-muted);">JPG/PNG/WebP, maks 2MB</div>
                         @if($user->photo)
@@ -78,8 +82,8 @@
             </div>
 
             {{-- ── Info Dasar ── --}}
-            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--text-muted); margin:20px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--border);">
-                👤 Informasi Akun
+            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--text-muted); margin:20px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:6px;">
+                <iconify-icon icon="flat-color-icons:businessman" style="font-size: 16px;"></iconify-icon> Informasi Akun
             </div>
 
             <div class="form-row">
@@ -108,10 +112,10 @@
                 <label class="form-label" for="role">Role <span style="color:var(--danger)">*</span></label>
                 <select id="role" name="role" class="form-control" required
                     {{ (auth()->user()->role !== 'superadmin' && $user->role === 'superadmin') ? 'disabled' : '' }}>
-                    <option value="customer"   {{ old('role', $user->role) === 'customer'   ? 'selected' : '' }}>🟢 Customer</option>
-                    <option value="admin"      {{ old('role', $user->role) === 'admin'      ? 'selected' : '' }}>🟡 Admin</option>
+                    <option value="customer"   {{ old('role', $user->role) === 'customer'   ? 'selected' : '' }}>Customer</option>
+                    <option value="admin"      {{ old('role', $user->role) === 'admin'      ? 'selected' : '' }}>Admin</option>
                     @if(auth()->user()->role === 'superadmin')
-                        <option value="superadmin" {{ old('role', $user->role) === 'superadmin' ? 'selected' : '' }}>🔴 Superadmin</option>
+                        <option value="superadmin" {{ old('role', $user->role) === 'superadmin' ? 'selected' : '' }}>Superadmin</option>
                     @endif
                 </select>
                 @error('role')<div class="form-error">{{ $message }}</div>@enderror
@@ -119,7 +123,9 @@
 
             {{-- ── Ubah Password ── --}}
             <div style="background:var(--bg-input); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px 16px; margin-bottom:20px;">
-                <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); margin-bottom:10px;">🔑 Ubah Password (Opsional)</div>
+                <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+                    <iconify-icon icon="flat-color-icons:key" style="font-size: 16px;"></iconify-icon> Ubah Password (Opsional)
+                </div>
                 <div class="form-row">
                     <div class="form-group" style="margin-bottom:0;">
                         <label class="form-label" for="password">Password Baru</label>
@@ -154,7 +160,7 @@
 
             <div style="display:flex; gap:12px; justify-content:flex-end; padding-top:8px; border-top:1px solid var(--border);">
                 <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">Batal</a>
-                <button type="button" class="btn btn-primary" onclick="confirmUpdate('userEditForm', 'Konfirmasi Edit Pengguna', 'Apakah Anda yakin ingin menyimpan perubahan data pengguna ini?')">💾 Simpan Perubahan</button>
+                <button type="button" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;" onclick="confirmUpdate('userEditForm', 'Konfirmasi Edit Pengguna', 'Apakah Anda yakin ingin menyimpan perubahan data pengguna ini?')"><iconify-icon icon="flat-color-icons:approval"></iconify-icon> Simpan Perubahan</button>
             </div>
         </form>
     </div>
@@ -164,6 +170,9 @@
 <script>
 function handleRemovePhoto(cb) {
     const photoInput = document.getElementById('photoInput');
+    const userHasPhoto = Boolean({{ $user->photo ? 1 : 0 }});
+    const userPhotoUrl = "{{ $user->photo ? \Storage::disk('public')->url($user->photo) : '' }}";
+
     if (cb.checked) {
         photoInput.value = '';
         photoInput.disabled = true;
@@ -171,10 +180,10 @@ function handleRemovePhoto(cb) {
             `<div class="avatar-initials">{{ strtoupper(substr($user->name, 0, 1)) }}</div>`;
     } else {
         photoInput.disabled = false;
-        @if($user->photo)
-        document.getElementById('avatarPreviewWrap').innerHTML =
-            `<img id="avatarPreview" src="{{ Storage::disk('public')->url($user->photo) }}" style="width:100%;height:100%;object-fit:cover;">`;
-        @endif
+        if (userHasPhoto) {
+            document.getElementById('avatarPreviewWrap').innerHTML =
+                `<img id="avatarPreview" src="${userPhotoUrl}" style="width:100%;height:100%;object-fit:cover;">`;
+        }
     }
 }
 </script>

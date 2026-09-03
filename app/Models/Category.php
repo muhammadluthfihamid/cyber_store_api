@@ -18,6 +18,10 @@ class Category extends Model
         'is_active',
     ];
 
+    protected $appends = [
+        'encrypted_id',
+    ];
+
     protected function casts(): array
     {
         return [

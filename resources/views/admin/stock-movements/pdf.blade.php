@@ -133,7 +133,7 @@
         @endif
         <h1 style="text-align: center; margin: 4px 0 2px 0;">{{ strtoupper(\App\Models\Setting::get('store_name', 'BSI Cyber Store')) }}</h1>
         <p style="font-size: 10.5px; color: #444; margin-top: 2px; margin-bottom: 6px; text-align: center;">
-            📍 {{ \App\Models\Setting::get('store_address', 'Jl. Kramat Raya No.98, Senen, Jakarta Pusat') }}
+            {{ \App\Models\Setting::get('store_address', 'Jl. Kramat Raya No.98, Senen, Jakarta Pusat') }}
         </p>
         <p style="font-weight: bold; color: #0d47a1; text-align: center; font-size: 12.5px; margin-top: 6px;">
             LAPORAN MUTASI STOK BARANG

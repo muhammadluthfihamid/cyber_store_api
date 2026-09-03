@@ -7,598 +7,35 @@
 @endsection
 
 @push('styles')
-<style>
-    /* ── Slack-like Review Workspace (Theme Adaptive) ── */
-    .slack-chat-workspace {
-        display: flex;
-        height: calc(100vh - 120px);
-        background: #F1F5F9;
-        padding: 16px;
-        gap: 16px;
-        color: #1e293b;
-        font-family: 'Inter', sans-serif;
-    }
-
-    /* Left Sidebar */
-    .slack-sidebar {
-        width: 290px;
-        background: #D3D3D3;
-        border-radius: 16px;
-        display: flex;
-        flex-direction: column;
-        flex-shrink: 0;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-        overflow: hidden;
-    }
-
-    .slack-sidebar-header {
-        padding: 18px 20px;
-        font-size: 16px;
-        font-weight: 700;
-        color: #1e293b;
-        background: #D3D3D3;
-        border-bottom: 1px solid #e2e8f0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .slack-search-bar {
-        padding: 12px;
-        border-bottom: 1px solid #f1f5f9;
-        background: transparent;
-    }
-
-    .slack-search-input {
-        width: 100%;
-        background: #f1f5f9;
-        border: 1px solid #e2e8f0;
-        border-radius: 20px;
-        padding: 8px 16px;
-        color: #1e293b;
-        font-size: 13px;
-        outline: none;
-        transition: border-color 0.2s, background-color 0.2s;
-    }
-
-    .slack-search-input:focus {
-        border-color: #0F62FE;
-        background: #ffffff;
-    }
-
-    .slack-search-input::placeholder {
-        color: #94a3b8;
-    }
-
-    .slack-chat-list {
-        flex: 1;
-        overflow-y: auto;
-        padding: 6px;
-    }
-
-    .slack-chat-item {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        padding: 12px 14px;
-        cursor: pointer;
-        border-radius: 12px;
-        transition: background 0.2s;
-        text-decoration: none;
-        color: #1e293b;
-        margin-bottom: 4px;
-    }
-
-    .slack-chat-item:hover {
-        background: #D3D3D3;
-    }
-
-    .slack-chat-item.active {
-        background: #0F62FE;
-        color: #ffffff;
-    }
-
-    .slack-chat-name-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-weight: 600;
-        font-size: 13.5px;
-        color: #1e293b;
-    }
-
-    .slack-chat-item.active .slack-chat-name-row {
-        color: #ffffff;
-    }
-
-    .review-stars {
-        color: #fbbf24;
-        font-size: 11px;
-    }
-
-    .slack-chat-message {
-        font-size: 12px;
-        color: #64748b;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-        -webkit-box-orient: vertical;
-        line-height: 1.4;
-        margin-top: 3px;
-    }
-
-    .slack-chat-item.active .slack-chat-message {
-        color: rgba(255, 255, 255, 0.8);
-    }
-
-    .product-context {
-        font-size: 11px;
-        color: #0F62FE;
-        font-weight: 600;
-    }
-
-    .slack-chat-item.active .product-context {
-        color: #93c5fd;
-    }
-
-    /* Middle Chat Area */
-    .slack-chat-area {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        background: #D3D3D3;
-        border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-        overflow: hidden;
-    }
-
-    .slack-chat-header {
-        height: 60px;
-        border-bottom: 1px solid #e2e8f0;
-        padding: 0 24px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: #D3D3D3;
-        color: #1e293b;
-        flex-shrink: 0;
-    }
-
-    .slack-chat-header-title {
-        font-weight: 700;
-        font-size: 15px;
-        color: #1e293b;
-    }
-
-    .slack-chat-header-status {
-        font-size: 11px;
-        color: #64748b;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-top: 2px;
-        font-weight: 500;
-    }
-
-    .slack-messages-container {
-        flex: 1;
-        overflow-y: auto;
-        padding: 24px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        background: #D3D3D3;
-    }
-
-    /* Chat bubble styling */
-    .slack-msg-row {
-        display: flex;
-        gap: 12px;
-        align-items: flex-start;
-    }
-
-    .slack-msg-row.customer {
-        background: #ffffff;
-        border: 1px solid #cce0ff;
-        padding: 16px;
-        border-radius: 12px;
-        margin-bottom: 10px;
-    }
-
-    .slack-msg-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: #D3D3D3;
-        color: #475569;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 13px;
-        flex-shrink: 0;
-    }
-
-    .slack-msg-row.customer .slack-msg-avatar {
-        background: #ffd8a8;
-        color: #e8590c;
-    }
-
-    .slack-msg-row.admin .slack-msg-avatar {
-        background: #cc5de8;
-        color: #862e9c;
-    }
-
-    .slack-msg-body {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .slack-msg-row.admin .slack-msg-body {
-        align-items: flex-end;
-    }
-
-    .slack-msg-name-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 4px;
-    }
-
-    .slack-msg-username {
-        font-weight: 700;
-        font-size: 13.5px;
-        color: #1e293b;
-    }
-
-    .slack-msg-role-tag {
-        font-size: 9px;
-        background: #e2e8f0;
-        color: #475569;
-        padding: 1px 6px;
-        border-radius: 4px;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-
-    .slack-msg-bubble {
-        padding: 12px 16px;
-        border-radius: 14px;
-        border-top-left-radius: 2px;
-        font-size: 14px;
-        line-height: 1.5;
-        word-break: break-word;
-        color: #ffffff;
-        background: #0F62FE;
-    }
-
-    .slack-msg-row.admin .slack-msg-bubble {
-        border-top-left-radius: 14px;
-        border-top-right-radius: 2px;
-    }
-
-    .slack-msg-row.customer .slack-msg-bubble {
-        background: transparent;
-        color: #1e293b;
-        padding: 0;
-        border-radius: 0;
-    }
-
-    .slack-msg-time {
-        font-size: 10px;
-        color: #94a3b8;
-        margin-top: 4px;
-        padding: 0 4px;
-    }
-
-    .review-photo-preview {
-        width: 80px;
-        height: 80px;
-        object-fit: cover;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
-
-    .review-photo-preview:hover {
-        transform: scale(1.05);
-    }
-
-    /* Input Bar */
-    .slack-input-container {
-        padding: 16px 24px;
-        background: #D3D3D3;
-        border-top: 1px solid #e2e8f0;
-        flex-shrink: 0;
-    }
-
-    .slack-input-pill {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 24px;
-        padding: 6px 16px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .slack-input-field {
-        flex: 1;
-        background: transparent;
-        border: none;
-        outline: none;
-        color: #1e293b;
-        font-size: 14px;
-        padding: 6px 0;
-        resize: none;
-        height: 24px;
-    }
-
-    .slack-input-field::placeholder {
-        color: #94a3b8;
-    }
-
-    .slack-send-btn {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: #0F62FE;
-        color: #ffffff;
-        border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: transform 0.2s, background-color 0.2s;
-    }
-
-    .slack-send-btn:hover {
-        transform: scale(1.05);
-        background: #0b56db;
-    }
-
-    /* Right Details Pane */
-    .slack-details-pane {
-        width: 300px;
-        background: #D3D3D3;
-        border-radius: 16px;
-        display: flex;
-        flex-direction: column;
-        padding: 24px;
-        overflow-y: auto;
-        flex-shrink: 0;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    }
-
-    .slack-details-section {
-        margin-bottom: 24px;
-        border-bottom: 1px solid #f1f5f9;
-        padding-bottom: 20px;
-    }
-
-    .slack-details-section:last-child {
-        border-bottom: none;
-    }
-
-    .slack-details-title {
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: #94a3b8;
-        margin-bottom: 12px;
-        letter-spacing: 0.5px;
-    }
-
-    /* ── Dark Mode Adaptations ── */
-    [data-theme="dark"] .slack-chat-workspace {
-        background: #1A1D21;
-        color: #f1f5f9;
-    }
-
-    [data-theme="dark"] .slack-sidebar {
-        background: #2D3139;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    }
-
-    [data-theme="dark"] .slack-sidebar-header {
-        background: #2D3139;
-        color: #f1f5f9;
-        border-bottom: 1px solid #3d4350;
-    }
-
-    [data-theme="dark"] .slack-search-bar {
-        border-bottom: 1px solid #3d4350;
-    }
-
-    [data-theme="dark"] .slack-search-input {
-        background: #3d4350;
-        border: 1px solid #4d5566;
-        color: #f1f5f9;
-    }
-
-    [data-theme="dark"] .slack-search-input:focus {
-        border-color: #0F62FE;
-        background: #2D3139;
-    }
-
-    [data-theme="dark"] .slack-chat-item {
-        color: #cbd5e1;
-    }
-
-    [data-theme="dark"] .slack-chat-item:hover {
-        background: #3d4350;
-    }
-
-    [data-theme="dark"] .slack-chat-item.active {
-        background: #0F62FE;
-        color: #ffffff;
-    }
-
-    [data-theme="dark"] .slack-chat-name-row {
-        color: #f1f5f9;
-    }
-
-    [data-theme="dark"] .slack-chat-item.active .slack-chat-name-row {
-        color: #ffffff;
-    }
-
-    [data-theme="dark"] .slack-chat-message {
-        color: #94a3b8;
-    }
-
-    [data-theme="dark"] .slack-chat-item.active .slack-chat-message {
-        color: rgba(255, 255, 255, 0.8);
-    }
-
-    [data-theme="dark"] .slack-chat-area {
-        background: #2D3139;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    }
-
-    [data-theme="dark"] .slack-chat-header {
-        border-bottom: 1px solid #3d4350;
-        background: #2D3139;
-        color: #f1f5f9;
-    }
-
-    [data-theme="dark"] .slack-chat-header-title {
-        color: #f1f5f9;
-    }
-
-    [data-theme="dark"] .slack-messages-container {
-        background: #2D3139;
-    }
-
-    [data-theme="dark"] .slack-msg-row.customer {
-        background: #3d4350;
-        border-color: #4d5566;
-    }
-
-    [data-theme="dark"] .slack-msg-avatar {
-        background: #3d4350;
-        color: #cbd5e1;
-    }
-
-    [data-theme="dark"] .slack-msg-username {
-        color: #f1f5f9;
-    }
-
-    [data-theme="dark"] .slack-msg-role-tag {
-        background: #4d5566;
-        color: #cbd5e1;
-    }
-
-    [data-theme="dark"] .slack-msg-row.customer .slack-msg-bubble {
-        background: transparent;
-        color: #f1f5f9;
-    }
-
-    [data-theme="dark"] .slack-msg-row.admin .slack-msg-bubble {
-        background: #0F62FE;
-        color: #ffffff;
-    }
-
-    [data-theme="dark"] .slack-input-container {
-        background: #2D3139;
-        border-top: 1px solid #3d4350;
-    }
-
-    [data-theme="dark"] .slack-input-pill {
-        background: #3d4350;
-        border: 1px solid #4d5566;
-    }
-
-    [data-theme="dark"] .slack-input-field {
-        color: #f1f5f9;
-    }
-
-    [data-theme="dark"] .slack-details-pane {
-        background: #2D3139;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    }
-
-    [data-theme="dark"] .slack-details-section {
-        border-bottom: 1px solid #3d4350;
-    }
-
-    [data-theme="dark"] .slack-details-title {
-        color: #94a3b8;
-    }
-
-    [data-theme="dark"] .slack-details-section img {
-        border-color: #4d5566 !important;
-    }
-
-    [data-theme="dark"] .slack-details-section div,
-    [data-theme="dark"] .slack-details-section span,
-    [data-theme="dark"] .slack-details-section button {
-        color: inherit;
-    }
-
-    [data-theme="dark"] .slack-details-section div[style*="color:#1e293b"],
-    [data-theme="dark"] .slack-details-section div[style*="color:#fff"] {
-        color: #f1f5f9 !important;
-    }
-
-    [data-theme="dark"] .slack-details-section span[style*="color:#94a3b8"] {
-        color: #94a3b8 !important;
-    }
-
-    [data-theme="dark"] .slack-details-section div[style*="background:#e2e8f0"] {
-        background: #3d4350 !important;
-        color: #cbd5e1 !important;
-    }
-
-    [data-theme="dark"] #threeDotsDropdown {
-        background: #1A1D21 !important;
-        border-color: #3d4350 !important;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5) !important;
-    }
-
-    @media (max-width: 768px) {
-        .slack-chat-workspace {
-            flex-direction: column !important;
-            height: auto !important;
-            padding: 8px !important;
-        }
-        .slack-sidebar {
-            width: 100% !important;
-            max-height: 250px !important;
-        }
-        .slack-main-chat {
-            width: 100% !important;
-            min-height: 400px !important;
-        }
-        .slack-details-pane {
-            width: 100% !important;
-        }
-    }
-</style>
+<link rel="stylesheet" href="{{ asset('assets/css/chat.css') }}?v=1">
 @endpush
 
 @section('content')
 <div class="slack-chat-workspace">
     <!-- Left Sidebar: Review List -->
     <div class="slack-sidebar">
-        <div class="slack-sidebar-header">
-            <span>💬 Chat Ulasan</span>
+        <div class="slack-sidebar-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="display: flex; align-items: center; gap: 8px;"><iconify-icon icon="flat-color-icons:comments" style="font-size: 20px;"></iconify-icon> Chat Ulasan</span>
+            <form method="POST" action="{{ route('admin.cache.flush-review-chats') }}" style="margin: 0;" onsubmit="return confirm('Bersihkan cache ulasan di Redis?')">
+                @csrf
+                <button type="submit" class="btn btn-sm" style="background-color: #F59E0B; color: white; border: none; padding: 3px 8px; border-radius: 6px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;" title="Bersihkan Cache Redis">
+                    <iconify-icon icon="flat-color-icons:synchronize" style="font-size: 14px;"></iconify-icon> Cache
+                </button>
+            </form>
         </div>
         <div class="slack-search-bar">
-            <form method="GET" action="{{ route('admin.review-chats.index') }}" style="display: flex; gap: 6px;">
-                <input type="text" name="search" class="slack-search-input"
-                    placeholder="🔍 Cari nama, email, ulasan..." value="{{ request('search') }}">
-                <button type="submit" class="btn btn-sm" style="background-color: #3C3565; color: #ffffff; border: none; padding: 0 12px; border-radius: 8px; font-weight: 600; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Cari Ulasan">
-                    <iconify-icon icon="lucide:search" style="font-size: 14px;"></iconify-icon>
+            <form method="GET" action="{{ route('admin.review-chats.index') }}" style="display: flex; gap: 5px; width: 100%; align-items: center;">
+                <div class="search-input-wrapper" style="flex: 1; min-width: 0; position: relative;">
+                    <input type="text" name="search" class="slack-search-input search-input"
+                        placeholder="Cari ulasan..." value="{{ request('search') }}" data-suggestion-url="{{ route('admin.review-chats.suggestions') }}" autocomplete="off">
+                </div>
+                <button type="submit" class="btn btn-sm" style="background-color: #3C3565; color: #ffffff; border: none; height: 32px; padding: 0 10px; border-radius: 8px; font-weight: 600; font-size: 11.5px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" title="Cari Ulasan">
+                    <iconify-icon icon="lucide:search" style="font-size: 13px;"></iconify-icon>
                     Cari
                 </button>
                 @if(request('search'))
-                <a href="{{ route('admin.review-chats.index') }}" class="btn btn-sm" style="background: var(--bg-card, #ffffff); color: var(--text-primary, #1e293b); border: 1px solid var(--border, #cbd5e1); border-radius: 8px; padding: 0 10px; display: flex; align-items: center; justify-content: center; font-weight: 600;" title="Reset Search">
-                    <iconify-icon icon="lucide:x" style="font-size: 15px; color: var(--text-primary, #1e293b);"></iconify-icon>
+                <a href="{{ route('admin.review-chats.index') }}" class="btn btn-sm" style="background: var(--bg-card, #ffffff); color: var(--text-primary, #1e293b); border: 1px solid var(--border, #cbd5e1); border-radius: 8px; height: 32px; width: 32px; padding: 0; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;" title="Reset Search">
+                    <iconify-icon icon="lucide:x" style="font-size: 14px; color: var(--text-primary, #1e293b);"></iconify-icon>
                 </a>
                 @endif
             </form>
@@ -610,7 +47,12 @@
             @endphp
             <a href="{{ route('admin.review-chats.show', $r) }}" class="slack-chat-item {{ $isActive ? 'active' : '' }}">
                 <div class="slack-chat-name-row">
-                    <span class="text-truncate">{{ $r->user?->name ?? 'User' }}</span>
+                    <span class="text-truncate" style="display: flex; align-items: center; gap: 6px;">
+                        {{ $r->user?->name ?? 'User' }}
+                        @if(!$r->is_read)
+                        <span style="background-color: #DF0B2B; color: #ffffff; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 6px; line-height: 1.2;">BARU</span>
+                        @endif
+                    </span>
                     <span class="review-stars">
                         @for($i=1; $i<=5; $i++)
                             @if($i <=$r->rating)
@@ -621,8 +63,8 @@
                             @endfor
                     </span>
                 </div>
-                <div class="product-context text-truncate">
-                    📦 {{ $r->product?->name }}
+                <div class="product-context text-truncate" style="display: flex; align-items: center; gap: 4px;">
+                    <iconify-icon icon="flat-color-icons:box" style="font-size: 14px;"></iconify-icon> {{ $r->product?->name }}
                 </div>
                 <div class="slack-chat-message">
                     {{ $r->comment ?? '(Tidak ada komentar)' }}
@@ -656,12 +98,12 @@
                 </div>
             </div>
             <div style="position:relative; display:inline-block;">
-                <i class="bi bi-three-dots-vertical" id="threeDotsBtn" style="color: #64748b; font-size: 18px; cursor: pointer; padding: 4px;"></i>
+                <iconify-icon icon="lucide:more-vertical" id="threeDotsBtn" style="color: #64748b; font-size: 18px; cursor: pointer; padding: 4px;"></iconify-icon>
 
                 {{-- Dropdown Menu --}}
                 <div id="threeDotsDropdown" style="display:none; position:absolute; right:0; top:30px; background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; width:160px; box-shadow:0 8px 20px rgba(0,0,0,0.08); z-index:1050; padding:4px 0;">
                     <a href="javascript:void(0);" id="toggleDetailsBtn" style="display:flex; align-items:center; gap:8px; padding:10px 16px; color:#1e293b; font-size:13px; text-decoration:none; transition:background 0.2s;">
-                        <i class="bi bi-info-circle"></i> Toggle Info
+                        <iconify-icon icon="flat-color-icons:info" style="font-size: 16px;"></iconify-icon> Toggle Info
                     </a>
                 </div>
             </div>
@@ -741,7 +183,7 @@
                     <input type="text" name="message" id="messageInput" class="slack-input-field"
                         placeholder="Tulis balasan ulasan..." required autocomplete="off" />
                     <button type="submit" class="slack-send-btn" id="sendBtn">
-                        <i class="bi bi-send-fill" style="font-size: 14px;"></i>
+                        <iconify-icon icon="lucide:send" style="font-size: 14px;"></iconify-icon>
                     </button>
                 </div>
             </form>
@@ -751,7 +193,7 @@
             <div class="slack-chat-header-title">Detail Obrolan</div>
         </div>
         <div class="slack-messages-container" style="justify-content:center; align-items:center; text-align:center; min-height:300px;">
-            <div style="font-size:48px; margin-bottom:16px;">💬</div>
+            <div style="margin-bottom:16px; display: flex; justify-content: center;"><iconify-icon icon="flat-color-icons:comments" style="font-size: 56px;"></iconify-icon></div>
             <h3 style="color:#64748b; font-weight:700; margin-bottom:8px;">Selamat Datang di Chat Ulasan</h3>
             <p style="color:#64748b; font-size:13px; max-width:320px; margin:0 auto; line-height:1.6;">
                 Pilih salah satu ulasan customer di panel kiri untuk mulai membalas ulasan secara real-time.
@@ -923,17 +365,17 @@
         }
     }
 
-    // Auto-refresh bubble setiap 5 detik (polling)
-    const isReviewActive = @json(isset($review));
-    if (isReviewActive) {
+    // Auto-refresh bubble setiap 6 detik jika halaman ulasan aktif dan tab terlihat
+    if (document.getElementById('chatContainer')) {
         setInterval(function() {
+            if (document.hidden) return;
             fetch(window.location.href, {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 })
-                .then(res => res.text())
-                .then(html => {
+                .then(function(res) { return res.text(); })
+                .then(function(html) {
                     const parser = new window.DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
                     const newChat = doc.getElementById('chatContainer');
@@ -943,7 +385,7 @@
                         curChat.innerHTML = newChat.innerHTML;
                         if (wasAtBottom) curChat.scrollTop = curChat.scrollHeight;
                     }
-                }).catch(() => {});
+                }).catch(function() {});
         }, 5000);
     }
 </script>

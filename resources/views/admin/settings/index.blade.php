@@ -8,10 +8,9 @@
 @endsection
 
 @section('content')
-<div style="max-width: 700px;">
-    <div class="card">
+<div class="card">
         <div class="card-header">
-            <span class="card-title">⚙️ Konfigurasi Informasi Toko</span>
+            <span class="card-title" style="display: flex; align-items: center; gap: 8px;"><iconify-icon icon="flat-color-icons:settings" style="font-size: 22px;"></iconify-icon> Konfigurasi Informasi Toko</span>
         </div>
         <div class="card-body">
             <form id="settingsForm" method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data">
@@ -89,6 +88,66 @@
                     @error('store_address')
                     <div class="form-error">{{ $message }}</div>
                     @enderror
+                </div>
+
+                <hr style="margin: 32px 0; border: 0; border-top: 1px solid var(--border-color, #E2E8F0);">
+
+                {{-- 📢 Announcement Bar Navbar --}}
+                <div style="margin-bottom: 20px;">
+                    <h3 style="font-size: 16px; font-weight: 700; color: #0D47A1; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                        <iconify-icon icon="flat-color-icons:advertising" style="font-size: 22px;"></iconify-icon> Top Announcement Bar (Header / Navbar Web)
+                    </h3>
+                    <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Pengaturan teks pengumuman/promo baris paling atas di website toko online. Admin dapat mengubah pesan, badge, link, atau menonaktifkannya kapan saja.</p>
+                </div>
+
+                {{-- Live Preview Box --}}
+                <div style="background: #090d16; border: 1px solid #1e293b; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; color: #fff; font-size: 13px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="background: rgba(0,240,255,0.15); border: 1px solid rgba(0,240,255,0.4); color: #00f0ff; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 5px;">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #00f0ff; display: inline-block;"></span>
+                            <span id="preview_badge">{{ $announcementBadge }}</span>
+                        </span>
+                        <span id="preview_text" style="color: #cbd5e1;">{!! $announcementText !!}</span>
+                    </div>
+                    <span id="preview_info" style="color: #94a3b8; font-size: 12px;">{{ $announcementInfo }}</span>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600;">
+                        <input type="checkbox" name="top_announcement_is_active" value="1" {{ $announcementIsActive ? 'checked' : '' }} style="width: 18px; height: 18px; accent-color: var(--primary);">
+                        <span>Tampilkan Announcement Bar di Navbar Website</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="top_announcement_badge">Teks Label / Badge</label>
+                    <input type="text" id="top_announcement_badge" name="top_announcement_badge" class="form-control"
+                        value="{{ old('top_announcement_badge', $announcementBadge) }}" placeholder="Contoh: BSI Cyber Store Official / CYBER PROMO"
+                        oninput="document.getElementById('preview_badge').innerText = this.value || 'PROMO'">
+                    <div class="form-hint">Label kecil dengan efek lampu berkedip di sebelah kiri teks.</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="top_announcement_text">Teks Pengumuman / Promo <span style="color:var(--danger)">*</span></label>
+                    <textarea id="top_announcement_text" name="top_announcement_text" class="form-control" rows="2"
+                        placeholder="Masukkan pesan pengumuman atau promo yang menarik..."
+                        oninput="document.getElementById('preview_text').innerHTML = this.value || 'Teks pengumuman...'">{{ old('top_announcement_text', $announcementText) }}</textarea>
+                    <div class="form-hint">Dapat menyertakan emoji (🔥, ⚡, 🎉) dan tag HTML seperti &lt;strong&gt;KODEKUPON&lt;/strong&gt;.</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label class="form-label" for="top_announcement_info">Teks Keterangan Kanan</label>
+                        <input type="text" id="top_announcement_info" name="top_announcement_info" class="form-control"
+                            value="{{ old('top_announcement_info', $announcementInfo) }}" placeholder="Contoh: ⚡ Garansi Resmi 100%"
+                            oninput="document.getElementById('preview_info').innerText = this.value || ''">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="top_announcement_link">Tautan / Link Tujuan (Opsional)</label>
+                        <input type="text" id="top_announcement_link" name="top_announcement_link" class="form-control"
+                            value="{{ old('top_announcement_link', $announcementLink) }}" placeholder="Contoh: /products?is_recommended=1">
+                        <div class="form-hint">Kosongkan jika teks tidak perlu bisa diklik.</div>
+                    </div>
                 </div>
 
                 <hr style="margin: 32px 0; border: 0; border-top: 1px solid var(--border-color, #E2E8F0);">
@@ -198,8 +257,8 @@
                         <div style="background: white; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px; margin-top: 10px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                 <span style="font-size: 12px; font-weight: 700; color: #475569;">Langkah-Langkah:</span>
-                                <button type="button" class="btn btn-sm btn-secondary" onclick="addStepRow(this, {{ $gIdx }})" style="font-size: 11px; padding: 2px 6px;">
-                                    + Tambah Langkah
+                                <button type="button" class="btn btn-sm btn-secondary" onclick="addStepRow(this, {{ $loop->index }})" style="font-size: 11px; padding: 2px 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <iconify-icon icon="flat-color-icons:plus"></iconify-icon> Tambah Langkah
                                 </button>
                             </div>
                             <div class="steps-container" style="display: flex; flex-direction: column; gap: 8px;">
@@ -210,7 +269,7 @@
                                         <input type="text" name="guides[{{ $gIdx }}][steps][{{ $sIdx }}][title]" class="form-control form-control-sm" value="{{ $step['title'] ?? '' }}" placeholder="Judul Langkah..." required>
                                         <input type="text" name="guides[{{ $gIdx }}][steps][{{ $sIdx }}][desc]" class="form-control form-control-sm" value="{{ $step['desc'] ?? '' }}" placeholder="Penjelasan Langkah...">
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-danger" onclick="removeStepRow(this)" style="padding: 2px 6px; font-size: 10px; margin-top: 4px;">✕</button>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="removeStepRow(this)" style="padding: 2px 6px; font-size: 10px; margin-top: 4px; display: inline-flex; align-items: center;" title="Hapus"><iconify-icon icon="fluent-emoji-flat:wastebasket" style="font-size: 12px;"></iconify-icon></button>
                                 </div>
                                 @endforeach
                             </div>
@@ -220,12 +279,11 @@
                 </div>
 
                 <div style="display:flex; justify-content:flex-end; margin-top:24px;">
-                    <button type="button" class="btn btn-primary" onclick="confirmUpdate('settingsForm', 'Konfirmasi Simpan Pengaturan', 'Apakah Anda yakin ingin menyimpan perubahan pengaturan toko, FAQ, dan Panduan Aplikasi ini?')">💾 Simpan Perubahan</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmUpdate('settingsForm', 'Konfirmasi Simpan Pengaturan', 'Apakah Anda yakin ingin menyimpan perubahan pengaturan toko, FAQ, dan Panduan Aplikasi ini?')" style="display: inline-flex; align-items: center; gap: 6px;"><iconify-icon icon="flat-color-icons:approval"></iconify-icon> Simpan Perubahan</button>
                 </div>
             </form>
         </div>
     </div>
-</div>
 
 @push('scripts')
 <script>
@@ -253,10 +311,12 @@
     }
 
     function removeFaqRow(btn) {
-        btn.closest('.faq-item-card').remove();
-        document.querySelectorAll('#faqListContainer .faq-item-card').forEach((card, idx) => {
-            card.querySelector('.faq-num').innerText = idx + 1;
-        });
+        if (confirm('Apakah Anda yakin ingin menghapus item FAQ ini?')) {
+            btn.closest('.faq-item-card').remove();
+            document.querySelectorAll('#faqListContainer .faq-item-card').forEach((card, idx) => {
+                card.querySelector('.faq-num').innerText = idx + 1;
+            });
+        }
     }
 
     function addGuideSectionRow() {
@@ -289,8 +349,8 @@
             <div style="background: white; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px; margin-top: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <span style="font-size: 12px; font-weight: 700; color: #475569;">Langkah-Langkah:</span>
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="addStepRow(this, ${gIdx})" style="font-size: 11px; padding: 2px 6px;">
-                        + Tambah Langkah
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="addStepRow(this, ${gIdx})" style="font-size: 11px; padding: 2px 6px; display: inline-flex; align-items: center; gap: 4px;">
+                        <iconify-icon icon="flat-color-icons:plus"></iconify-icon> Tambah Langkah
                     </button>
                 </div>
                 <div class="steps-container" style="display: flex; flex-direction: column; gap: 8px;">
@@ -302,10 +362,12 @@
     }
 
     function removeGuideSectionRow(btn) {
-        btn.closest('.guide-item-card').remove();
-        document.querySelectorAll('#guideListContainer .guide-item-card').forEach((card, idx) => {
-            card.querySelector('.guide-num').innerText = idx + 1;
-        });
+        if (confirm('Apakah Anda yakin ingin menghapus Bab Panduan ini beserta seluruh langkahnya?')) {
+            btn.closest('.guide-item-card').remove();
+            document.querySelectorAll('#guideListContainer .guide-item-card').forEach((card, idx) => {
+                card.querySelector('.guide-num').innerText = idx + 1;
+            });
+        }
     }
 
     function addStepRow(btn, gIdx) {
@@ -320,17 +382,19 @@
                 <input type="text" name="guides[${gIdx}][steps][${sIdx}][title]" class="form-control form-control-sm" placeholder="Judul Langkah..." required>
                 <input type="text" name="guides[${gIdx}][steps][${sIdx}][desc]" class="form-control form-control-sm" placeholder="Penjelasan Langkah...">
             </div>
-            <button type="button" class="btn btn-sm btn-danger" onclick="removeStepRow(this)" style="padding: 2px 6px; font-size: 10px; margin-top: 4px;">✕</button>
+            <button type="button" class="btn btn-sm btn-danger" onclick="removeStepRow(this)" style="padding: 2px 6px; font-size: 10px; margin-top: 4px; display: inline-flex; align-items: center;" title="Hapus"><iconify-icon icon="fluent-emoji-flat:wastebasket" style="font-size: 12px;"></iconify-icon></button>
         `;
         stepsContainer.appendChild(div);
     }
 
     function removeStepRow(btn) {
-        const container = btn.closest('.steps-container');
-        btn.closest('.step-item-card').remove();
-        container.querySelectorAll('.step-item-card').forEach((card, idx) => {
-            card.querySelector('span').innerText = (idx + 1) + '.';
-        });
+        if (confirm('Apakah Anda yakin ingin menghapus langkah ini?')) {
+            const container = btn.closest('.steps-container');
+            btn.closest('.step-item-card').remove();
+            container.querySelectorAll('.step-item-card').forEach((card, idx) => {
+                card.querySelector('span').innerText = (idx + 1) + '.';
+            });
+        }
     }
 </script>
 @endpush

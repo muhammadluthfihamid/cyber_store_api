@@ -37,7 +37,7 @@ class AuthController extends Controller
             }
 
             $request->session()->regenerate();
-            return redirect()->intended(route('admin.dashboard'));
+            return redirect()->intended(route('admin.dashboard'))->with('success', 'Selamat datang kembali, ' . $user->name . '! Anda berhasil masuk ke Panel Administrasi.');
         }
 
         return back()->withErrors([

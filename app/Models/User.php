@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use App\Traits\EncryptsRouteKey;
 
+/**
+ * @method bool|null delete()
+ */
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, EncryptsRouteKey;

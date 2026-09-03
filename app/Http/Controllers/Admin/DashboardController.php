@@ -25,20 +25,13 @@ class DashboardController extends Controller
         $stats = Cache::remember(
             'admin:dashboard:stats',
             now()->addMinutes(self::STATS_CACHE_TTL),
-            fn () => $this->computeDashboardStats()
+            fn() => $this->computeDashboardStats()
         );
 
-        /** @var \Illuminate\Database\Eloquent\Builder $user */
-        $user = User::query();
-        $recent_users = $user->latest()->take(5)->get();
 
-        /** @var \Illuminate\Database\Eloquent\Builder $order */
-        $order = Order::query();
-        $recent_orders = $order->with('user')->latest()->take(5)->get();
-
-        /** @var \Illuminate\Database\Eloquent\Builder $product */
-        $product = Product::query();
-        $low_stock_products = $product->where('stock', '<=', self::LOW_STOCK_THRESHOLD)
+        $recent_users = User::query()->latest()->take(5)->get();
+        $recent_orders = Order::query()->with('user')->latest()->take(5)->get();
+        $low_stock_products = Product::query()->where('stock', '<=', self::LOW_STOCK_THRESHOLD)
             ->where('is_active', true)
             ->orderBy('stock')
             ->take(5)
@@ -53,33 +46,21 @@ class DashboardController extends Controller
     /**
      * Hitung semua statistik dashboard.
      *
-     * Dipisah ke method sendiri agar IDE (Intelephense) dapat menganalisis
-     * tipe data Eloquent secara akurat tanpa false positive.
-     *
-     * @return array<string, int|float|string>
+     * @return array<string, mixed>
      */
     private function computeDashboardStats(): array
     {
-        /** @var \Illuminate\Database\Eloquent\Builder $user */
-        $user = User::query();
-        /** @var \Illuminate\Database\Eloquent\Builder $product */
-        $product = Product::query();
-        /** @var \Illuminate\Database\Eloquent\Builder $category */
-        $category = Category::query();
-        /** @var \Illuminate\Database\Eloquent\Builder $order */
-        $order = Order::query();
-
         return [
-            'total_users'       => (clone $user)->count(),
-            'total_customers'   => (clone $user)->where('role', User::ROLE_CUSTOMER)->count(),
-            'total_admins'      => (clone $user)->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SUPERADMIN])->count(),
-            'total_products'    => (clone $product)->count(),
-            'active_products'   => (clone $product)->where('is_active', true)->count(),
-            'total_categories'  => (clone $category)->count(),
-            'total_orders'      => (clone $order)->count(),
-            'total_revenue'     => (clone $order)->where('status', Order::STATUS_COMPLETED)->sum('grand_total'),
-            'pending_orders'    => (clone $order)->where('status', Order::STATUS_PENDING_PAYMENT)->count(),
-            'processing_orders' => (clone $order)->whereIn('status', [
+            'total_users'       => User::query()->count(),
+            'total_customers'   => User::query()->where('role', User::ROLE_CUSTOMER)->count(),
+            'total_admins'      => User::query()->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SUPERADMIN])->count(),
+            'total_products'    => Product::query()->count(),
+            'active_products'   => Product::query()->where('is_active', true)->count(),
+            'total_categories'  => Category::query()->count(),
+            'total_orders'      => Order::query()->count(),
+            'total_revenue'     => Order::query()->where('status', Order::STATUS_COMPLETED)->sum('grand_total'),
+            'pending_orders'    => Order::query()->where('status', Order::STATUS_PENDING_PAYMENT)->count(),
+            'processing_orders' => Order::query()->whereIn('status', [
                 Order::STATUS_PAID,
                 Order::STATUS_PACKED,
                 Order::STATUS_SHIPPED,

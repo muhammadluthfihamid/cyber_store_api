@@ -41,22 +41,6 @@
 
         {{-- ── Table ──────────────────────────────────────────────── --}}
 
-        <style>
-            .desktop-table-container { display: block; }
-            .mobile-banner-grid { display: none; padding: 16px; gap: 14px; flex-direction: column; }
-            .mobile-banner-card {
-                background: var(--bg-card, #ffffff);
-                border: 1px solid var(--border, #e2e8f0);
-                border-radius: 14px;
-                padding: 16px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-            }
-            @media (max-width: 768px) {
-                .desktop-table-container { display: none !important; }
-                .mobile-banner-grid { display: flex !important; }
-            }
-        </style>
-
         @if ($banners->isEmpty())
             <div class="empty-state">
                 <div class="empty-state-icon">🖼️</div>

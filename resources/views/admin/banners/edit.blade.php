@@ -13,15 +13,12 @@
 <div style="max-width:760px;">
     <div class="card">
         <div class="card-header">
-            <span class="card-title">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="20" height="14" x="2" y="5" rx="2"/>
-                    <line x1="2" x2="22" y1="10" y2="10"/>
-                </svg>
-                Edit Banner
+            <span class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <iconify-icon icon="flat-color-icons:edit-image" style="font-size: 22px;"></iconify-icon> Edit Banner
             </span>
-            <a href="{{ route('admin.banners.index') }}" class="btn btn-secondary">← Kembali</a>
+            <a href="{{ route('admin.banners.index') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <iconify-icon icon="flat-color-icons:previous"></iconify-icon> Kembali
+            </a>
         </div>
 
         <form id="bannerEditForm" action="{{ route('admin.banners.update', $banner) }}" method="POST" enctype="multipart/form-data"
@@ -89,7 +86,9 @@
                      onclick="document.getElementById('imageInput').click()"
                      ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
                     <div id="dropContent">
-                        <div style="font-size:32px; margin-bottom:8px;">📤</div>
+                        <div style="margin-bottom:8px; display:flex; justify-content:center; align-items:center;">
+                            <iconify-icon icon="flat-color-icons:upload" style="font-size: 48px;"></iconify-icon>
+                        </div>
                         <div style="font-weight:600; color:var(--text-primary); margin-bottom:4px;">
                             Klik atau seret untuk ganti gambar
                         </div>
@@ -113,19 +112,20 @@
             {{-- Submit --}}
             <div style="display:flex; gap:12px; padding-top:4px; flex-wrap:wrap;">
                 <button type="button" class="btn btn-primary"
-                        onclick="confirmUpdate('bannerEditForm', 'Konfirmasi Edit Banner', 'Apakah Anda yakin ingin menyimpan perubahan banner ini?')">
-                    💾 Simpan Perubahan
+                        onclick="confirmUpdate('bannerEditForm', 'Konfirmasi Edit Banner', 'Apakah Anda yakin ingin menyimpan perubahan banner ini?')"
+                        style="display: inline-flex; align-items: center; gap: 6px;">
+                    <iconify-icon icon="flat-color-icons:approval"></iconify-icon> Simpan Perubahan
                 </button>
                 <a href="{{ route('admin.banners.index') }}" class="btn btn-secondary">Batal</a>
 
                 {{-- Quick delete from edit page --}}
                 <button type="button"
                     class="btn btn-danger"
-                    style="margin-left:auto;"
+                    style="margin-left:auto; display: inline-flex; align-items: center; gap: 6px;"
                     data-url="{{ route('admin.banners.destroy', $banner) }}"
                     data-name="{{ $banner->title ?? 'banner ini' }}"
                     onclick="confirmDelete(this.dataset.url, this.dataset.name)">
-                    🗑️ Hapus Banner
+                    <iconify-icon icon="fluent-emoji-flat:wastebasket" style="font-size: 16px;"></iconify-icon> Hapus Banner
                 </button>
             </div>
         </form>

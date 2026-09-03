@@ -27,8 +27,8 @@ Route::prefix('v1')->group(function () {
     Route::post('/resend-otp', [AuthController::class, 'resendOtp'])->middleware('throttle:5,5');
     Route::post('/auth/google', [GoogleAuthController::class, 'loginWithGoogle'])->middleware('throttle:10,1');
 
-    // ── Forgot Password (alur 3 langkah, dengan rate limiting ketat) ─────────
-    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:5,60');
+    // ── Forgot Password (alur 3 langkah, dengan rate limiting) ─────────
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:5,15');
     Route::post('/verify-reset-otp', [AuthController::class, 'verifyResetOtp'])->middleware('throttle:10,10');
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,10');
 
@@ -65,6 +65,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/orders/{order}', [OrderController::class, 'show']);
         Route::post('/orders/{order}/complete', [OrderController::class, 'complete']);
         Route::post('/orders/{order}/track', [OrderController::class, 'trackWaybill']);
+        Route::post('/orders/{order}/simulate-courier-pod', [OrderController::class, 'simulateCourierPod']);
         Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel']);
         Route::post('/payments/{payment}/check-status', [PaymentController::class, 'checkStatus']);
 

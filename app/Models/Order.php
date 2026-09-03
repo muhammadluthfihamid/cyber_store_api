@@ -114,7 +114,7 @@ class Order extends Model
 
         $apiKey = env('RAJAONGKIR_API_KEY');
         $baseUrl = env('RAJAONGKIR_BASE_URL', 'https://api.rajaongkir.com/starter');
-        
+
         $waybillUrl = 'https://api.rajaongkir.com/basic/waybill';
         if (str_contains($baseUrl, 'pro.rajaongkir.com')) {
             $waybillUrl = 'https://pro.rajaongkir.com/api/waybill';
@@ -149,7 +149,7 @@ class Order extends Model
 
         if (!$apiSuccess) {
             $manifestData = $this->generateMockManifest();
-            
+
             $isDelivered = collect($manifestData)->contains('status', self::STATUS_ARRIVED);
             if ($isDelivered) {
                 $this->update(['status' => self::STATUS_ARRIVED]);
@@ -167,6 +167,7 @@ class Order extends Model
                 'status'      => $step['status'] ?? $this->status,
                 'description' => $step['description'],
                 'location'    => $step['location'] ?? 'Dalam Perjalanan',
+                'proof_photo' => $step['proof_photo'] ?? null,
                 'created_at'  => $step['created_at'] ?? now(),
             ]);
         }
@@ -219,8 +220,9 @@ class Order extends Model
             ];
             $manifest[] = [
                 'status'      => self::STATUS_ARRIVED,
-                'description' => 'Paket berhasil diterima oleh [' . $receiver . '] (Ybs).',
+                'description' => 'Paket berhasil diterima oleh [' . $receiver . '] (Ybs). Bukti foto serah terima otomatis terunggah.',
                 'location'    => $city,
+                'proof_photo' => 'order_proofs/mock_pod_sample.jpg',
                 'created_at'  => $createdAt->copy()->addDays(2)->addHours(4),
             ];
         }

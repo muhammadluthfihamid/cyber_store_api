@@ -6,8 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Traits\EncryptsRouteKey;
+
 class Chat extends Model
 {
+    use EncryptsRouteKey;
+
     protected $fillable = [
         'customer_id',
         'product_id',

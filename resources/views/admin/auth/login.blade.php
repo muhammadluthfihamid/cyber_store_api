@@ -1,7 +1,7 @@
 @php
-    $loginLogoSetting = \App\Models\Setting::get('store_logo');
-    $loginLogoUrl = $loginLogoSetting ? \Illuminate\Support\Facades\Storage::disk('public')->url($loginLogoSetting) : asset('assets/img/logo-cyberstore.jpg');
-    $storeName = \App\Models\Setting::get('store_name', 'BSI Cyber Store');
+$loginLogoSetting = \App\Models\Setting::get('store_logo');
+$loginLogoUrl = $loginLogoSetting ? \Illuminate\Support\Facades\Storage::disk('public')->url($loginLogoSetting) : asset('assets/img/logo-cyberstore.jpg');
+$storeName = \App\Models\Setting::get('store_name', 'BSI Cyber Store');
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -57,7 +57,7 @@
                                 name="email"
                                 class="form-control"
                                 value="{{ old('email') }}"
-                                placeholder="admin@ubsistore.test"
+                                placeholder="Masukan Email..."
                                 required
                                 autocomplete="email">
                         </div>
@@ -107,7 +107,7 @@
                         <span>Cyber Store Apps</span>
                     </div>
                     <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
-                        Solusi E-Commerce modern menjual produk merchandise resmi kampus UBSI.
+                        Solusi E-Commerce modern menjual produk merchandise resmi Kampus.
                     </div>
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
                         <span class="demo-badge demo-sa" style="background: rgba(223, 11, 43, 0.2); color: #ff4d6d; padding: 4px 10px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">

@@ -9,8 +9,12 @@
 <div style="max-width:600px;">
 <div class="card">
     <div class="card-header">
-        <span class="card-title">🏷️ Tambah Kategori</span>
-        <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">← Kembali</a>
+        <span class="card-title" style="display: flex; align-items: center; gap: 8px;">
+            <iconify-icon icon="flat-color-icons:tag" style="font-size: 22px;"></iconify-icon> Tambah Kategori
+        </span>
+        <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <iconify-icon icon="flat-color-icons:previous"></iconify-icon> Kembali
+        </a>
     </div>
     <div class="card-body">
         <form id="categoryCreateForm" method="POST" action="{{ route('admin.categories.store') }}">
@@ -37,7 +41,9 @@
             </div>
             <div style="display:flex;gap:12px;justify-content:flex-end;">
                 <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">Batal</a>
-                <button type="button" class="btn btn-primary" onclick="confirmCreate('categoryCreateForm', 'Konfirmasi Tambah Kategori', 'Apakah Anda yakin ingin menyimpan kategori baru ini?')">💾 Simpan</button>
+                <button type="button" class="btn btn-primary" onclick="confirmCreate('categoryCreateForm', 'Konfirmasi Tambah Kategori', 'Apakah Anda yakin ingin menyimpan kategori baru ini?')" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <iconify-icon icon="flat-color-icons:approval"></iconify-icon> Simpan
+                </button>
             </div>
         </form>
     </div>

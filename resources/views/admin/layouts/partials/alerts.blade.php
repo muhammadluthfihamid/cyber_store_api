@@ -87,55 +87,55 @@
 
     @if (session('success'))
     <div class="toast toast-success" role="alert">
-        <div class="toast-icon"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="toast-icon"><iconify-icon icon="flat-color-icons:ok" style="font-size: 22px;"></iconify-icon></div>
         <div class="toast-body">
             <div class="toast-title">Berhasil</div>
             <div class="toast-message">{{ session('success') }}</div>
         </div>
-        <button class="toast-close" onclick="dismissToast(this.closest('.toast'))"><i class="bi bi-x-lg"></i></button>
+        <button class="toast-close" onclick="dismissToast(this.closest('.toast'))"><iconify-icon icon="lucide:x" style="font-size: 16px;"></iconify-icon></button>
         <div class="toast-progress success-progress"></div>
     </div>
     @endif
 
     @if (session('error'))
     <div class="toast toast-danger" role="alert">
-        <div class="toast-icon"><i class="bi bi-exclamation-circle-fill"></i></div>
+        <div class="toast-icon"><iconify-icon icon="flat-color-icons:cancel" style="font-size: 22px;"></iconify-icon></div>
         <div class="toast-body">
             <div class="toast-title">Error</div>
             <div class="toast-message">{{ session('error') }}</div>
         </div>
-        <button class="toast-close" onclick="dismissToast(this.closest('.toast'))"><i class="bi bi-x-lg"></i></button>
+        <button class="toast-close" onclick="dismissToast(this.closest('.toast'))"><iconify-icon icon="lucide:x" style="font-size: 16px;"></iconify-icon></button>
         <div class="toast-progress danger-progress"></div>
     </div>
     @endif
 
     @if (session('warning'))
     <div class="toast toast-warning" role="alert">
-        <div class="toast-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <div class="toast-icon"><iconify-icon icon="flat-color-icons:warning" style="font-size: 22px;"></iconify-icon></div>
         <div class="toast-body">
             <div class="toast-title">Peringatan</div>
             <div class="toast-message">{{ session('warning') }}</div>
         </div>
-        <button class="toast-close" onclick="dismissToast(this.closest('.toast'))"><i class="bi bi-x-lg"></i></button>
+        <button class="toast-close" onclick="dismissToast(this.closest('.toast'))"><iconify-icon icon="lucide:x" style="font-size: 16px;"></iconify-icon></button>
         <div class="toast-progress warning-progress"></div>
     </div>
     @endif
 
     @if (session('info'))
     <div class="toast toast-info" role="alert">
-        <div class="toast-icon"><i class="bi bi-info-circle-fill"></i></div>
+        <div class="toast-icon"><iconify-icon icon="flat-color-icons:info" style="font-size: 22px;"></iconify-icon></div>
         <div class="toast-body">
             <div class="toast-title">Informasi</div>
             <div class="toast-message">{{ session('info') }}</div>
         </div>
-        <button class="toast-close" onclick="dismissToast(this.closest('.toast'))"><i class="bi bi-x-lg"></i></button>
+        <button class="toast-close" onclick="dismissToast(this.closest('.toast'))"><iconify-icon icon="lucide:x" style="font-size: 16px;"></iconify-icon></button>
         <div class="toast-progress info-progress"></div>
     </div>
     @endif
 
     @if ($errors->any())
     <div class="toast toast-danger" role="alert">
-        <div class="toast-icon"><i class="bi bi-shield-exclamation"></i></div>
+        <div class="toast-icon"><iconify-icon icon="flat-color-icons:cancel" style="font-size: 22px;"></iconify-icon></div>
         <div class="toast-body">
             <div class="toast-title">Validasi Gagal</div>
             <div class="toast-message">
@@ -146,7 +146,7 @@
                 </ul>
             </div>
         </div>
-        <button class="toast-close" onclick="dismissToast(this.closest('.toast'))"><i class="bi bi-x-lg"></i></button>
+        <button class="toast-close" onclick="dismissToast(this.closest('.toast'))"><iconify-icon icon="lucide:x" style="font-size: 16px;"></iconify-icon></button>
         <div class="toast-progress danger-progress"></div>
     </div>
     @endif
@@ -159,7 +159,7 @@
     position: fixed;
     top: 24px;
     right: 24px;
-    z-index: 99999;
+    z-index: 9999999;
     display: flex;
     flex-direction: column;
     gap: 12px;

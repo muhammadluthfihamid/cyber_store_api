@@ -4,38 +4,24 @@
 @section('breadcrumb')<span class="breadcrumb-sep">›</span><span>Mutasi Stok</span>@endsection
 @section('content')
 
-<style>
-    .desktop-table-container { display: block; }
-    .mobile-movement-grid { display: none; padding: 16px; gap: 14px; flex-direction: column; }
-    .mobile-movement-card {
-        background: var(--bg-card, #ffffff);
-        border: 1px solid var(--border, #e2e8f0);
-        border-radius: 14px;
-        padding: 16px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    }
-    @media (max-width: 768px) {
-        .stock-grid { grid-template-columns: 1fr !important; }
-        .desktop-table-container { display: none !important; }
-        .mobile-movement-grid { display: flex !important; }
-    }
-</style>
-
 <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;" class="stock-grid">
 
     {{-- Tabel Mutasi --}}
     <div class="card">
         <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
-            <span class="card-title">📈 Riwayat Mutasi Stok</span>
+            <span class="card-title" style="display: flex; align-items: center; gap: 8px;"><iconify-icon icon="flat-color-icons:line-chart" style="font-size: 22px;"></iconify-icon> Riwayat Mutasi Stok</span>
             <a href="{{ route('admin.stock-movements.pdf', request()->query()) }}" class="btn btn-secondary" style="font-size:12px;padding:6px 12px;display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
-                📄 Download PDF
+                <iconify-icon icon="flat-color-icons:document" style="font-size: 16px;"></iconify-icon> Download PDF
             </a>
         </div>
 
         <div style="padding:14px 20px;border-bottom:1px solid var(--border);">
             <form method="GET" action="{{ route('admin.stock-movements.index') }}" class="filter-bar">
-                <input type="text" name="search" class="form-control search-input"
-                    placeholder="🔍 Cari produk, referensi..." value="{{ request('search') }}">
+                <div class="search-input-wrapper">
+                    <iconify-icon icon="flat-color-icons:search" class="search-icon" style="font-size: 16px;"></iconify-icon>
+                    <input type="text" name="search" class="form-control search-input"
+                        placeholder="Cari produk, referensi..." value="{{ request('search') }}">
+                </div>
                 <select name="product_id" class="form-control">
                     <option value="">Semua Produk</option>
                     @foreach($products as $p)
@@ -46,28 +32,29 @@
                 </select>
                 <select name="type" class="form-control">
                     <option value="">Semua Tipe</option>
-                    <option value="in"  {{ request('type')==='in' ?'selected':'' }}>📥 Masuk</option>
-                    <option value="out" {{ request('type')==='out'?'selected':'' }}>📤 Keluar</option>
+                    <option value="in"  {{ request('type')==='in' ?'selected':'' }}>Masuk</option>
+                    <option value="out" {{ request('type')==='out'?'selected':'' }}>Keluar</option>
                 </select>
-                <button type="submit" class="btn btn-primary">Filter</button>
+                <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;"><iconify-icon icon="flat-color-icons:filter" style="font-size: 16px;"></iconify-icon> Filter</button>
                 @if(request()->hasAny(['search','type','product_id']))
-                    <a href="{{ route('admin.stock-movements.index') }}" class="btn btn-secondary">Reset</a>
+                    <a href="{{ route('admin.stock-movements.index') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;"><iconify-icon icon="flat-color-icons:undo" style="font-size: 16px;"></iconify-icon> Reset</a>
                 @endif
             </form>
         </div>
 
         @if($movements->isEmpty())
-            <div class="empty-state"><div class="empty-state-icon">📈</div><h3>Belum ada mutasi stok</h3></div>
+            <div class="empty-state"><div class="empty-state-icon"><iconify-icon icon="flat-color-icons:line-chart" style="font-size: 48px;"></iconify-icon></div><h3>Belum ada mutasi stok</h3></div>
         @else
             <!-- Desktop Table View (>768px) -->
             <div class="table-wrapper desktop-table-container">
                 <table>
                     <thead>
-                        <tr><th>Produk</th><th>Tipe</th><th>Qty</th><th>Referensi</th><th>Catatan</th><th>Oleh</th><th>Tanggal</th></tr>
+                        <tr><th>No.</th><th>Produk</th><th>Tipe</th><th>Qty</th><th>Referensi</th><th>Catatan</th><th>Oleh</th><th>Tanggal</th></tr>
                     </thead>
                     <tbody>
                     @foreach($movements as $mov)
                     <tr>
+                        <td style="color:var(--text-muted);font-size:12px;">{{ $movements->firstItem() + $loop->index }}</td>
                         <td>
                             <div style="font-weight:500;color:var(--text-primary);">{{ \Illuminate\Support\Str::limit($mov->product?->name,30) ?? '—' }}</div>
                             @if($mov->product)
@@ -75,8 +62,9 @@
                             @endif
                         </td>
                         <td>
-                            <span class="badge {{ $mov->type==='in'?'badge-in':'badge-out' }}">
-                                {{ $mov->type==='in'?'📥 Masuk':'📤 Keluar' }}
+                            <span class="badge {{ $mov->type==='in'?'badge-in':'badge-out' }}" style="display: inline-flex; align-items: center; gap: 4px;">
+                                <iconify-icon icon="{{ $mov->type==='in' ? 'flat-color-icons:download' : 'flat-color-icons:upload' }}" style="font-size: 14px;"></iconify-icon>
+                                {{ $mov->type==='in'?'Masuk':'Keluar' }}
                             </span>
                         </td>
                         <td>
@@ -99,11 +87,12 @@
                 @foreach($movements as $mov)
                 <div class="mobile-movement-card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <div style="font-weight: 800; font-size: 14px; color: var(--text-primary);">
-                            📦 {{ \Illuminate\Support\Str::limit($mov->product?->name, 35) ?? '—' }}
+                        <div style="font-weight: 800; font-size: 14px; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                            <iconify-icon icon="flat-color-icons:box" style="font-size: 16px;"></iconify-icon> {{ \Illuminate\Support\Str::limit($mov->product?->name, 35) ?? '—' }}
                         </div>
-                        <span class="badge {{ $mov->type==='in'?'badge-in':'badge-out' }}">
-                            {{ $mov->type==='in'?'📥 Masuk':'📤 Keluar' }}
+                        <span class="badge {{ $mov->type==='in'?'badge-in':'badge-out' }}" style="display: inline-flex; align-items: center; gap: 4px;">
+                            <iconify-icon icon="{{ $mov->type==='in' ? 'flat-color-icons:download' : 'flat-color-icons:upload' }}" style="font-size: 14px;"></iconify-icon>
+                            {{ $mov->type==='in'?'Masuk':'Keluar' }}
                         </span>
                     </div>
 
@@ -112,17 +101,17 @@
                         <div>Stok Saat Ini: <strong>{{ $mov->product?->stock ?? 0 }}</strong></div>
                     </div>
 
-                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">
-                        📝 Ref: {{ $mov->reference ?? '—' }}
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+                        <iconify-icon icon="flat-color-icons:file" style="font-size: 13px;"></iconify-icon> Ref: {{ $mov->reference ?? '—' }}
                     </div>
                     @if($mov->note)
-                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
-                        💬 {{ $mov->note }}
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 4px;">
+                        <iconify-icon icon="flat-color-icons:comments" style="font-size: 13px;"></iconify-icon> {{ $mov->note }}
                     </div>
                     @endif
                     <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 8px; margin-top: 8px;">
-                        <span>👤 Oleh: {{ $mov->user?->name ?? 'Sistem' }}</span>
-                        <span>📅 {{ $mov->created_at->format('d M Y, H:i') }}</span>
+                        <span style="display: inline-flex; align-items: center; gap: 4px;"><iconify-icon icon="flat-color-icons:businessman" style="font-size: 13px;"></iconify-icon> Oleh: {{ $mov->user?->name ?? 'Sistem' }}</span>
+                        <span style="display: inline-flex; align-items: center; gap: 4px;"><iconify-icon icon="flat-color-icons:calendar" style="font-size: 13px;"></iconify-icon> {{ $mov->created_at->format('d M Y, H:i') }}</span>
                     </div>
                 </div>
                 @endforeach
@@ -141,7 +130,7 @@
 
     {{-- Form Input Manual --}}
     <div class="card" style="height:fit-content;">
-        <div class="card-header"><span class="card-title">➕ Input Mutasi Manual</span></div>
+        <div class="card-header"><span class="card-title" style="display: flex; align-items: center; gap: 8px;"><iconify-icon icon="flat-color-icons:plus" style="font-size: 20px;"></iconify-icon> Input Mutasi Manual</span></div>
         <div class="card-body">
             <form id="stockMutationForm" method="POST" action="{{ route('admin.stock-movements.store') }}">
                 @csrf
@@ -162,8 +151,8 @@
                     <label class="form-label" for="type">Tipe Mutasi <span style="color:var(--danger)">*</span></label>
                     <select id="type" name="type" class="form-control" required>
                         <option value="">— Pilih Tipe —</option>
-                        <option value="in"  {{ old('type')==='in' ?'selected':'' }}>📥 Masuk (Tambah Stok)</option>
-                        <option value="out" {{ old('type')==='out'?'selected':'' }}>📤 Keluar (Kurangi Stok)</option>
+                        <option value="in"  {{ old('type')==='in' ?'selected':'' }}>Masuk (Tambah Stok)</option>
+                        <option value="out" {{ old('type')==='out'?'selected':'' }}>Keluar (Kurangi Stok)</option>
                     </select>
                     @error('type')<div class="form-error">{{ $message }}</div>@enderror
                 </div>
@@ -189,13 +178,9 @@
                     @error('note')<div class="form-error">{{ $message }}</div>@enderror
                 </div>
 
-                <button type="button" class="btn btn-primary" style="width:100%;" onclick="confirmCreate('stockMutationForm', 'Konfirmasi Catat Mutasi', 'Apakah Anda yakin ingin mencatat mutasi stok ini?')">📊 Catat Mutasi</button>
+                <button type="button" class="btn btn-primary" style="width:100%; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onclick="confirmCreate('stockMutationForm', 'Konfirmasi Catat Mutasi', 'Apakah Anda yakin ingin mencatat mutasi stok ini?')"><iconify-icon icon="flat-color-icons:bar-chart" style="font-size: 18px;"></iconify-icon> Catat Mutasi</button>
             </form>
         </div>
     </div>
 </div>
-
-<style>
-@media (max-width: 900px) { .stock-grid { grid-template-columns: 1fr !important; } }
-</style>
 @endsection

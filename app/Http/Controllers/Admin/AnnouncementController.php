@@ -63,6 +63,29 @@ class AnnouncementController extends Controller
     }
 
     /**
+     * Display the specified announcement details.
+     */
+    public function show(Announcement $announcement)
+    {
+        $announcement->loadCount([
+            'userNotifications',
+            'userNotifications as read_count' => function ($query) {
+                $query->whereNotNull('read_at');
+            },
+            'userNotifications as unread_count' => function ($query) {
+                $query->whereNull('read_at');
+            }
+        ]);
+
+        $recipients = $announcement->userNotifications()
+            ->with('user')
+            ->latest()
+            ->paginate(15);
+
+        return view('admin.announcements.show', compact('announcement', 'recipients'));
+    }
+
+    /**
      * Delete an announcement.
      */
     public function destroy(Announcement $announcement)

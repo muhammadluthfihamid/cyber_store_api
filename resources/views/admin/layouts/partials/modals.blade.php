@@ -4,18 +4,18 @@
 <div class="modal-overlay" id="confirmModal">
     <div class="modal-box">
         <div class="modal-icon-wrap danger-icon">
-            <i class="bi bi-trash3-fill"></i>
+            <iconify-icon icon="lucide:trash-2" style="font-size: 32px;"></iconify-icon>
         </div>
         <div class="modal-title">Konfirmasi Hapus</div>
         <div class="modal-body" id="confirmModalBody">Apakah Anda yakin ingin menghapus item ini? Tindakan ini tidak dapat dibatalkan.</div>
         <div class="modal-actions">
             <button class="btn btn-secondary" onclick="closeConfirm()">
-                <i class="bi bi-x-lg"></i> Batal
+                <iconify-icon icon="lucide:x" style="font-size: 16px;"></iconify-icon> Batal
             </button>
             <form id="confirmForm" method="POST">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-danger" onclick="showLoading('Menghapus data…')">
-                    <i class="bi bi-trash3"></i> Ya, Hapus
+                    <iconify-icon icon="lucide:trash-2" style="font-size: 16px;"></iconify-icon> Ya, Hapus
                 </button>
             </form>
         </div>
@@ -28,16 +28,16 @@
 <div class="modal-overlay" id="createConfirmModal">
     <div class="modal-box">
         <div class="modal-icon-wrap success-icon">
-            <i class="bi bi-plus-circle-fill"></i>
+            <iconify-icon icon="lucide:plus-circle" style="font-size: 32px;"></iconify-icon>
         </div>
         <div class="modal-title" id="createConfirmTitle">Konfirmasi Simpan Data</div>
         <div class="modal-body" id="createConfirmBody">Apakah Anda yakin ingin menyimpan data baru ini?</div>
         <div class="modal-actions">
             <button class="btn btn-secondary" onclick="closeCreateConfirm()">
-                <i class="bi bi-x-lg"></i> Batal
+                <iconify-icon icon="lucide:x" style="font-size: 16px;"></iconify-icon> Batal
             </button>
             <button type="button" class="btn btn-primary" id="createConfirmBtn" onclick="doFormSubmit('createConfirmModal')">
-                <i class="bi bi-check-lg"></i> Ya, Simpan
+                <iconify-icon icon="lucide:check" style="font-size: 16px;"></iconify-icon> Ya, Simpan
             </button>
         </div>
     </div>
@@ -49,16 +49,16 @@
 <div class="modal-overlay" id="updateConfirmModal">
     <div class="modal-box">
         <div class="modal-icon-wrap info-icon">
-            <i class="bi bi-pencil-square"></i>
+            <iconify-icon icon="lucide:edit-3" style="font-size: 32px;"></iconify-icon>
         </div>
         <div class="modal-title" id="updateConfirmTitle">Konfirmasi Perubahan</div>
         <div class="modal-body" id="updateConfirmBody">Apakah Anda yakin ingin menyimpan perubahan ini?</div>
         <div class="modal-actions">
             <button class="btn btn-secondary" onclick="closeUpdateConfirm()">
-                <i class="bi bi-x-lg"></i> Batal
+                <iconify-icon icon="lucide:x" style="font-size: 16px;"></iconify-icon> Batal
             </button>
             <button type="button" class="btn btn-primary" id="updateConfirmBtn" onclick="doFormSubmit('updateConfirmModal')">
-                <i class="bi bi-check-lg"></i> Ya, Perbarui
+                <iconify-icon icon="lucide:check" style="font-size: 16px;"></iconify-icon> Ya, Perbarui
             </button>
         </div>
     </div>
@@ -70,18 +70,18 @@
 <div class="modal-overlay" id="logoutModal">
     <div class="modal-box">
         <div class="modal-icon-wrap danger-icon">
-            <i class="bi bi-box-arrow-right"></i>
+            <iconify-icon icon="lucide:log-out" style="font-size: 32px;"></iconify-icon>
         </div>
         <div class="modal-title">Konfirmasi Keluar</div>
         <div class="modal-body">Apakah Anda yakin ingin keluar dari Admin Panel?</div>
         <div class="modal-actions">
             <button class="btn btn-secondary" onclick="closeLogoutModal()">
-                <i class="bi bi-x-lg"></i> Batal
+                <iconify-icon icon="lucide:x" style="font-size: 16px;"></iconify-icon> Batal
             </button>
             <form method="POST" action="{{ route('admin.logout') }}">
                 @csrf
                 <button type="submit" class="btn btn-danger" onclick="showLoading('Keluar dari sistem…')">
-                    <i class="bi bi-box-arrow-right"></i> Ya, Keluar
+                    <iconify-icon icon="lucide:log-out" style="font-size: 16px;"></iconify-icon> Ya, Keluar
                 </button>
             </form>
         </div>

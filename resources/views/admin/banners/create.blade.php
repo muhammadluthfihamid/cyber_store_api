@@ -13,15 +13,12 @@
 <div style="max-width:760px;">
     <div class="card">
         <div class="card-header">
-            <span class="card-title">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="20" height="14" x="2" y="5" rx="2"/>
-                    <line x1="2" x2="22" y1="10" y2="10"/>
-                </svg>
-                Tambah Banner Baru
+            <span class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <iconify-icon icon="flat-color-icons:gallery" style="font-size: 22px;"></iconify-icon> Tambah Banner Baru
             </span>
-            <a href="{{ route('admin.banners.index') }}" class="btn btn-secondary">← Kembali</a>
+            <a href="{{ route('admin.banners.index') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <iconify-icon icon="flat-color-icons:previous"></iconify-icon> Kembali
+            </a>
         </div>
 
         <form id="bannerCreateForm" action="{{ route('admin.banners.store') }}" method="POST" enctype="multipart/form-data"
@@ -73,7 +70,9 @@
                      onclick="document.getElementById('imageInput').click()"
                      ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
                     <div id="dropContent">
-                        <div style="font-size:36px; margin-bottom:8px;">🖼️</div>
+                        <div style="margin-bottom:8px; display:flex; justify-content:center; align-items:center;">
+                            <iconify-icon icon="flat-color-icons:add-image" style="font-size: 48px;"></iconify-icon>
+                        </div>
                         <div style="font-weight:600; color:var(--text-primary); margin-bottom:4px;">
                             Klik atau seret gambar ke sini
                         </div>
@@ -95,8 +94,9 @@
             {{-- Submit --}}
             <div style="display:flex; gap:12px; padding-top:4px;">
                 <button type="button" class="btn btn-primary"
-                        onclick="confirmCreate('bannerCreateForm', 'Konfirmasi Tambah Banner', 'Apakah Anda yakin ingin menyimpan banner baru ini?')">
-                    💾 Simpan Banner
+                        onclick="confirmCreate('bannerCreateForm', 'Konfirmasi Tambah Banner', 'Apakah Anda yakin ingin menyimpan banner baru ini?')"
+                        style="display: inline-flex; align-items: center; gap: 6px;">
+                    <iconify-icon icon="flat-color-icons:approval"></iconify-icon> Simpan Banner
                 </button>
                 <a href="{{ route('admin.banners.index') }}" class="btn btn-secondary">Batal</a>
             </div>

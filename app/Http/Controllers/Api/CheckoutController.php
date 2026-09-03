@@ -67,8 +67,16 @@ class CheckoutController extends Controller
             foreach ($cartItems as $item) {
                 $product = Product::query()->where('id', $item->product_id)->lockForUpdate()->firstOrFail();
 
-                if (! $product->is_active || $product->stock < $item->quantity) {
-                    abort(422, "Stok {$product->name} tidak mencukupi.");
+                if (! $product->is_active) {
+                    abort(422, "Produk {$product->name} saat ini sedang tidak aktif.");
+                }
+
+                if ($product->stock <= 0) {
+                    abort(422, "Stok produk {$product->name} saat ini sedang habis (0). Silakan hapus atau ganti produk ini.");
+                }
+
+                if ($product->stock < $item->quantity) {
+                    abort(422, "Stok produk {$product->name} hanya tersisa {$product->stock} unit, tidak mencukupi untuk pesanan ({$item->quantity} unit).");
                 }
 
                 $subtotal += $product->price * $item->quantity;

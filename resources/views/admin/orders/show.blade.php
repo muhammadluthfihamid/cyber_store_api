@@ -106,6 +106,7 @@ $statusBadgeStyles = [
                         <span>Qty: <strong style="color: var(--text-primary);">{{ $item->quantity }}x</strong></span>
                         @if($item->size) <span>• Ukuran: <strong style="color: var(--text-primary);">{{ $item->size }}</strong></span> @endif
                         @if($item->color) <span>• Warna: <strong style="color: var(--text-primary);">{{ $item->color }}</strong></span> @endif
+                        @if($item->nim) <span>• NIM: <strong style="color: var(--accent); background: rgba(99, 102, 241, .1); padding: 2px 6px; border-radius: 4px;">🎓 {{ $item->nim }}</strong></span> @endif
                     </div>
                     <div style="margin-top: 6px;">
                         <span @style([
@@ -120,7 +121,7 @@ $statusBadgeStyles = [
 
             <div style="display: flex; align-items: center; gap: 20px;">
                 <div style="text-align: right;">
-                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Subtotal</div>
+                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Harga Produk</div>
                     <div style="font-size: 16px; font-weight: 800; color: var(--text-primary);">Rp {{ number_format($item->total, 0, ',', '.') }}</div>
                 </div>
 
@@ -157,7 +158,7 @@ $statusBadgeStyles = [
                 </div>
                 <div style="padding-bottom: 20px;">
                     <div style="font-size: 13.5px; font-weight: 800; color: var(--text-primary);">{{ $track->description }}</div>
-                    <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">{{ $track->created_at->format('d M Y, H:i') }}</div>
+                    <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">{{ $track->created_at->setTimezone('Asia/Jakarta')->format('d M Y, H:i') }} WIB</div>
                     @if($track->location)
                     <div style="font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; display: flex; align-items: center; gap: 4px;"><iconify-icon icon="solar:map-point-wave-bold-duotone" style="font-size: 14px; color: var(--accent);"></iconify-icon> {{ $track->location }}</div>
                     @endif
@@ -233,7 +234,7 @@ $statusBadgeStyles = [
                     <div>Email: <strong style="color: var(--text-primary);">{{ $order->user?->email ?? '-' }}</strong></div>
                     <div>No. HP: <strong style="color: var(--text-primary);">{{ $order->address?->phone ?? '-' }}</strong></div>
                     @if($order->address)
-                    <div style="margin-top: 4px;">Alamat: {{ $order->address->address }}, {{ $order->address->district }}, {{ $order->address->city }}, {{ $order->address->province }} {{ $order->address->postal_code }}</div>
+                    <div style="margin-top: 4px;">Alamat: {{ $order->address->address }}, {{ $order->address->district }} {{ $order->address->city }}, {{ $order->address->notes ? '('.$order->address->notes.')' : '' }}, {{ $order->address->province }} {{ $order->address->postal_code }}</div>
                     @endif
                 </div>
 
@@ -354,6 +355,24 @@ $statusBadgeStyles = [
                     <iconify-icon icon="solar:restart-bold-duotone" style="font-size: 16px;"></iconify-icon> Cek Resi via RajaOngkir
                 </button>
             </form>
+            @endif
+
+            {{-- ── Simulasi Kurir Serahkan Paket (Auto-POD) ── --}}
+            @if(in_array($order->status, ['paid', 'packed', 'shipped', 'arrived']))
+            <div style="margin-top: 18px; padding: 14px; background: rgba(59, 130, 246, 0.05); border: 1.5px dashed #3b82f6; border-radius: 0.75rem;">
+                <div style="font-size: 12.5px; font-weight: 800; color: #1d4ed8; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                    <iconify-icon icon="solar:delivery-bold-duotone" style="font-size: 18px;"></iconify-icon> Simulasi Kurir Selesaikan Pengiriman
+                </div>
+                <p style="font-size: 11.5px; color: var(--text-muted); margin: 0 0 10px 0; line-height: 1.4;">
+                    Uji coba serah terima paket oleh kurir. Foto bukti pengiriman (Proof of Delivery / POD) akan ter-upload secara otomatis tanpa perlu input manual admin.
+                </p>
+                <form id="simulatePodForm" method="POST" action="{{ route('admin.orders.simulate-pod', $order) }}">
+                    @csrf
+                    <button type="button" class="btn" style="width: 100%; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; border: none; font-weight: 800; font-size: 11.5px; border-radius: 0.5rem; padding: 9px; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 10px rgba(37,99,235,0.25);" onclick="confirmUpdate('simulatePodForm', 'Simulasi Auto-POD Kurir', 'Jalankan simulasi kurir menyerahkan paket dan upload otomatis foto bukti penerimaan (POD)?')">
+                        <iconify-icon icon="solar:camera-minimalistic-bold-duotone" style="font-size: 16px;"></iconify-icon> 🚀 SIMULASIKAN AUTO-POD KURIR
+                    </button>
+                </form>
+            </div>
             @endif
         </div>
     </div>

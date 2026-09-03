@@ -18,6 +18,7 @@ class CustomerAddress extends Model
         'receiver_name',
         'phone',
         'address',
+        'notes',
         'province',
         'city',
         'district',

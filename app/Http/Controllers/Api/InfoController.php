@@ -108,6 +108,13 @@ class InfoController extends Controller
                 'store_email'     => \App\Models\Setting::get('store_email', 'support@bsi.ac.id'),
                 'store_phone'     => \App\Models\Setting::get('store_phone', '(021) 7867868'),
                 'store_logo'      => $logo ? asset('storage/' . $logo) : asset('assets/img/logo-cyberstore.jpg'),
+                'announcement'    => [
+                    'is_active' => (bool) \App\Models\Setting::get('top_announcement_is_active', true),
+                    'badge'     => \App\Models\Setting::get('top_announcement_badge', 'BSI Cyber Store Official'),
+                    'text'      => \App\Models\Setting::get('top_announcement_text', '🔥 Diskon Hingga 50% untuk Semua Gadget & Aksesoris Gaming! Gunakan Kode: CYBER2026'),
+                    'info'      => \App\Models\Setting::get('top_announcement_info', '⚡ Garansi Resmi 100%'),
+                    'link'      => \App\Models\Setting::get('top_announcement_link', ''),
+                ],
             ];
         });
 

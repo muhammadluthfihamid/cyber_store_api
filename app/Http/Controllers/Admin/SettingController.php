@@ -108,9 +108,16 @@ class SettingController extends Controller
         $guidesRaw = Setting::get('help_guide_sections');
         $helpGuides = !empty($guidesRaw) ? json_decode($guidesRaw, true) : $defaultGuides;
 
+        $announcementIsActive = (bool) Setting::get('top_announcement_is_active', true);
+        $announcementBadge = Setting::get('top_announcement_badge', 'BSI Cyber Store Official');
+        $announcementText = Setting::get('top_announcement_text', '🔥 Diskon Hingga 50% untuk Semua Gadget & Aksesoris Gaming! Gunakan Kode: CYBER2026');
+        $announcementInfo = Setting::get('top_announcement_info', '⚡ Garansi Resmi 100%');
+        $announcementLink = Setting::get('top_announcement_link', '');
+
         return view('admin.settings.index', compact(
             'storeName', 'storeAddress', 'storeCityId', 'storeEmail', 'storePhone', 'cities',
-            'helpWhatsapp', 'helpEmail', 'helpPhone', 'helpFaqs', 'helpGuides'
+            'helpWhatsapp', 'helpEmail', 'helpPhone', 'helpFaqs', 'helpGuides',
+            'announcementIsActive', 'announcementBadge', 'announcementText', 'announcementInfo', 'announcementLink'
         ));
     }
 
@@ -123,6 +130,10 @@ class SettingController extends Controller
             'store_email' => ['required', 'email', 'max:200'],
             'store_phone' => ['required', 'string', 'max:50'],
             'store_logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
+            'top_announcement_badge' => ['nullable', 'string', 'max:100'],
+            'top_announcement_text' => ['nullable', 'string', 'max:500'],
+            'top_announcement_info' => ['nullable', 'string', 'max:100'],
+            'top_announcement_link' => ['nullable', 'string', 'max:255'],
             'help_whatsapp' => ['nullable', 'string', 'max:50'],
             'help_email' => ['nullable', 'email', 'max:200'],
             'help_phone' => ['nullable', 'string', 'max:50'],
@@ -137,6 +148,13 @@ class SettingController extends Controller
         Setting::set('store_city_id', $request->store_city_id);
         Setting::set('store_email', $request->store_email);
         Setting::set('store_phone', $request->store_phone);
+
+        // Announcement Bar Settings
+        Setting::set('top_announcement_is_active', $request->has('top_announcement_is_active') ? '1' : '0');
+        Setting::set('top_announcement_badge', $request->input('top_announcement_badge', 'BSI Cyber Store Official'));
+        Setting::set('top_announcement_text', $request->input('top_announcement_text', ''));
+        Setting::set('top_announcement_info', $request->input('top_announcement_info', '⚡ Garansi Resmi 100%'));
+        Setting::set('top_announcement_link', $request->input('top_announcement_link', ''));
 
         // Help Center Settings
         Setting::set('help_whatsapp', $request->input('help_whatsapp', '628123456789'));

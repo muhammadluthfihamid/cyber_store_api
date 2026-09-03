@@ -3,43 +3,34 @@
 @section('page-title','Ekspedisi')
 @section('breadcrumb')<span class="breadcrumb-sep">›</span><span>Ekspedisi</span>@endsection
 @section('content')
-<style>
-    .desktop-table-container { display: block; }
-    .mobile-expedition-grid { display: none; padding: 16px; gap: 14px; flex-direction: column; }
-    .mobile-expedition-card {
-        background: var(--bg-card, #ffffff);
-        border: 1px solid var(--border, #e2e8f0);
-        border-radius: 14px;
-        padding: 16px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    }
-    @media (max-width: 768px) {
-        .desktop-table-container { display: none !important; }
-        .mobile-expedition-grid { display: flex !important; }
-    }
-</style>
-
 <div class="card">
     <div class="card-header">
-        <span class="card-title"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-van-icon lucide-van"><path d="M13 6v5a1 1 0 0 0 1 1h6.102a1 1 0 0 1 .712.298l.898.91a1 1 0 0 1 .288.702V17a1 1 0 0 1-1 1h-3"/><path d="M5 18H3a1 1 0 0 1-1-1V8a2 2 0 0 1 2-2h12c1.1 0 2.1.8 2.4 1.8l1.176 4.2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg> Daftar Ekspedisi</span>
-        <a href="{{ route('admin.expeditions.create') }}" class="btn btn-primary">＋ Tambah Ekspedisi</a>
+        <span class="card-title" style="display: flex; align-items: center; gap: 8px;"><iconify-icon icon="flat-color-icons:shipped" style="font-size: 22px;"></iconify-icon> Daftar Ekspedisi</span>
+        <a href="{{ route('admin.expeditions.create') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;"><iconify-icon icon="flat-color-icons:plus" style="font-size: 18px;"></iconify-icon> Tambah Ekspedisi</a>
+    </div>
+    <div style="padding:12px 20px; background: rgba(59, 130, 246, 0.08); border-bottom:1px solid rgba(59, 130, 246, 0.2); color: #1d4ed8; font-size: 12.5px; display: flex; align-items: center; gap: 8px;">
+        <iconify-icon icon="flat-color-icons:info" style="font-size: 18px; flex-shrink: 0;"></iconify-icon>
+        <span>Tarif ongkir pada aplikasi <strong>dihitung otomatis secara real-time dari API RajaOngkir</strong> berdasarkan kota asal toko dan kota tujuan pembeli. "Biaya Dasar" di bawah hanya digunakan sebagai tarif cadangan (fallback).</span>
     </div>
     <div style="padding:14px 20px;border-bottom:1px solid var(--border);">
         <form method="GET" action="{{ route('admin.expeditions.index') }}" class="filter-bar">
-            <input type="text" name="search" class="form-control search-input" placeholder="🔍 Cari ekspedisi..." value="{{ request('search') }}">
+            <div class="search-input-wrapper">
+                <iconify-icon icon="flat-color-icons:search" class="search-icon" style="font-size: 16px;"></iconify-icon>
+                <input type="text" name="search" class="form-control search-input" placeholder="Cari ekspedisi..." value="{{ request('search') }}">
+            </div>
             <select name="status" class="form-control">
                 <option value="">Semua Status</option>
                 <option value="active"   {{ request('status')==='active'  ?'selected':'' }}>Aktif</option>
                 <option value="inactive" {{ request('status')==='inactive'?'selected':'' }}>Nonaktif</option>
             </select>
-            <button type="submit" class="btn btn-primary">Filter</button>
+            <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;"><iconify-icon icon="flat-color-icons:filter" style="font-size: 16px;"></iconify-icon> Filter</button>
             @if(request()->hasAny(['search','status']))
-                <a href="{{ route('admin.expeditions.index') }}" class="btn btn-secondary">Reset</a>
+                <a href="{{ route('admin.expeditions.index') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;"><iconify-icon icon="flat-color-icons:undo" style="font-size: 16px;"></iconify-icon> Reset</a>
             @endif
         </form>
     </div>
     @if($expeditions->isEmpty())
-        <div class="empty-state"><div class="empty-state-icon">🚚</div><h3>Belum ada ekspedisi</h3></div>
+        <div class="empty-state"><div class="empty-state-icon"><iconify-icon icon="flat-color-icons:shipped" style="font-size: 48px;"></iconify-icon></div><h3>Belum ada ekspedisi</h3></div>
     @else
         <!-- Desktop Table View (>768px) -->
         <div class="table-wrapper desktop-table-container">
@@ -96,10 +87,11 @@
             @foreach($expeditions as $exp)
             <div class="mobile-expedition-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <div style="font-weight: 800; font-size: 15px; color: var(--text-primary);">
-                        🚚 {{ $exp->name }}
+                    <div style="font-weight: 800; font-size: 15px; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                        <iconify-icon icon="flat-color-icons:shipped" style="font-size: 18px;"></iconify-icon> {{ $exp->name }}
                     </div>
-                    <span class="badge {{ $exp->is_active ? 'badge-active' : 'badge-inactive' }}">
+                    <span class="badge {{ $exp->is_active ? 'badge-active' : 'badge-inactive' }}" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <iconify-icon icon="{{ $exp->is_active ? 'flat-color-icons:checkmark' : 'flat-color-icons:cancel' }}" style="font-size: 13px;"></iconify-icon>
                         {{ $exp->is_active ? 'Aktif' : 'Nonaktif' }}
                     </span>
                 </div>
@@ -115,8 +107,8 @@
                 </div>
 
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-size: 12px; color: var(--text-muted);">
-                        🛒 Total: <strong>{{ $exp->orders_count }}</strong> Order
+                    <div style="font-size: 12px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px;">
+                        <iconify-icon icon="flat-color-icons:shopping-cart" style="font-size: 14px;"></iconify-icon> Total: <strong>{{ $exp->orders_count }}</strong> Order
                     </div>
                     <div class="actions" style="gap: 6px;">
                         <a href="{{ route('admin.expeditions.edit',$exp) }}" class="btn btn-secondary btn-sm btn-icon" title="Edit">

@@ -12,7 +12,9 @@
         </button>
         <div>
             <div class="breadcrumb" style="font-size: 11.5px; opacity: 0.85;">
-                <a href="{{ route('admin.dashboard') }}">🏠 / Pages</a>
+                <a href="{{ route('admin.dashboard') }}" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <iconify-icon icon="flat-color-icons:home" style="font-size: 15px;"></iconify-icon> Pages
+                </a>
                 @yield('breadcrumb')
             </div>
             <div class="page-title" style="margin-top: 1px;">@yield('page-title', 'Overview')</div>
@@ -28,26 +30,111 @@
             </svg>
         </div> -->
 
-        @php
-        $chatUnread = \App\Models\Chat::whereHas('messages', fn($q) =>
-        $q->where('sender_type','customer')->where('is_read', false)
-        )->count();
-        @endphp
-        <a href="{{ route('admin.chats.index') }}" class="theme-toggle-btn" title="Notifikasi Chat" style="position:relative; display:flex; align-items:center; justify-content:center; color:var(--text-primary); text-decoration:none;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell">
-                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-            </svg>
-            @if($chatUnread > 0)
-            <span id="topbar-chat-badge" style="position:absolute; top:-4px; right:-4px; background:#DF0B2B; color:#fff; font-size:9px; font-weight:700; width:15px; height:15px; border-radius:50%; display:flex; align-items:center; justify-content:center; line-height:1;">
-                {{ $chatUnread }}
-            </span>
-            @else
-            <span id="topbar-chat-badge" style="position:absolute; top:-4px; right:-4px; background:#DF0B2B; color:#fff; font-size:9px; font-weight:700; width:15px; height:15px; border-radius:50%; display:none; align-items:center; justify-content:center; line-height:1;">
-                0
-            </span>
-            @endif
-        </a>
+        <!-- 1. Order Notification Popover Container -->
+        <div class="topbar-dropdown-container" id="orderDropdownContainer">
+            <button type="button" class="theme-toggle-btn" id="orderDropdownBtn" onclick="toggleTopDropdown(event, 'orderDropdownMenu')" title="Notifikasi Pesanan" style="position:relative; display:flex; align-items:center; justify-content:center; text-decoration:none; cursor:pointer;">
+                <iconify-icon icon="solar:bag-check-bold-duotone" style="font-size: 18px; color: #10b981;"></iconify-icon>
+                <span id="topbar-order-badge" style="position:absolute; top:-4px; right:-4px; background:#10b981; color:#fff; font-size:9px; font-weight:700; width:15px; height:15px; border-radius:50%; display:none; align-items:center; justify-content:center; line-height:1;">
+                    0
+                </span>
+            </button>
+
+            <div id="orderDropdownMenu" class="topbar-popover-menu">
+                <div class="topbar-popover-header">
+                    <div class="topbar-popover-title">
+                        <iconify-icon icon="solar:bag-check-bold-duotone" style="font-size: 18px; color: #10b981;"></iconify-icon>
+                        Pesanan Masuk
+                    </div>
+                    <span id="popover-order-badge-header" style="font-size: 11px; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 6px;">
+                        0 Perlu Proses
+                    </span>
+                </div>
+
+                <div class="topbar-popover-body" id="topbar-order-list">
+                    <div class="topbar-popover-empty">
+                        <iconify-icon icon="flat-color-icons:ok" style="font-size: 32px;"></iconify-icon>
+                        <div>Tidak ada pesanan yang perlu diproses</div>
+                    </div>
+                </div>
+
+                <div class="topbar-popover-footer">
+                    <a href="{{ route('admin.orders.index', ['status' => 'paid']) }}">
+                        <span>Lihat Semua Pesanan Lunas</span>
+                        <iconify-icon icon="lucide:arrow-right" style="font-size: 13px;"></iconify-icon>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Chat & Notifications Popover Container -->
+        <div class="topbar-dropdown-container" id="notifDropdownContainer">
+            <button type="button" class="theme-toggle-btn" id="notifDropdownBtn" onclick="toggleTopDropdown(event, 'notifDropdownMenu')" title="Pusat Notifikasi & Chat" style="position:relative; display:flex; align-items:center; justify-content:center; text-decoration:none; cursor:pointer;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell">
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                </svg>
+                <span id="topbar-chat-badge" style="position:absolute; top:-4px; right:-4px; background:#DF0B2B; color:#fff; font-size:9px; font-weight:700; width:15px; height:15px; border-radius:50%; display:none; align-items:center; justify-content:center; line-height:1;">
+                    0
+                </span>
+            </button>
+
+            <div id="notifDropdownMenu" class="topbar-popover-menu">
+                <div class="topbar-popover-header">
+                    <div class="topbar-popover-title">
+                        <iconify-icon icon="flat-color-icons:comments" style="font-size: 18px;"></iconify-icon>
+                        Pusat Notifikasi
+                    </div>
+                    <span id="popover-notif-total-badge" style="font-size: 11px; font-weight: 700; background: rgba(223, 11, 43, 0.12); color: #DF0B2B; padding: 2px 8px; border-radius: 6px;">
+                        0 Baru
+                    </span>
+                </div>
+
+                <!-- Tabs for Chat & Reviews -->
+                <div class="topbar-popover-tabs">
+                    <button type="button" class="topbar-tab-btn active" id="tabBtnChat" onclick="switchNotifTab('chat')">
+                        <iconify-icon icon="solar:chat-round-line-bold" style="font-size: 14px;"></iconify-icon>
+                        <span>Chat Customer</span>
+                        <span id="tabBadgeChat" style="font-size: 10px; background: rgba(255,255,255,0.25); padding: 1px 5px; border-radius: 10px; display: none;">0</span>
+                    </button>
+                    <button type="button" class="topbar-tab-btn" id="tabBtnReview" onclick="switchNotifTab('review')">
+                        <iconify-icon icon="solar:star-bold" style="font-size: 14px;"></iconify-icon>
+                        <span>Ulasan Baru</span>
+                        <span id="tabBadgeReview" style="font-size: 10px; background: rgba(255,255,255,0.25); padding: 1px 5px; border-radius: 10px; display: none;">0</span>
+                    </button>
+                </div>
+
+                <!-- Tab Pane 1: Chat Customer -->
+                <div class="topbar-popover-body" id="topbar-chat-pane">
+                    <div id="topbar-chat-list">
+                        <div class="topbar-popover-empty">
+                            <iconify-icon icon="flat-color-icons:speech-bubble" style="font-size: 32px;"></iconify-icon>
+                            <div>Belum ada pesan chat customer</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Pane 2: Reviews (Hidden initially) -->
+                <div class="topbar-popover-body" id="topbar-review-pane" style="display: none;">
+                    <div id="topbar-review-list">
+                        <div class="topbar-popover-empty">
+                            <iconify-icon icon="flat-color-icons:rating" style="font-size: 32px;"></iconify-icon>
+                            <div>Belum ada ulasan baru</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="topbar-popover-footer" id="notifFooter">
+                    <a href="{{ route('admin.chats.index') }}" id="footerChatLink">
+                        <span>Buka Semua Percakapan Chat</span>
+                        <iconify-icon icon="lucide:arrow-right" style="font-size: 13px;"></iconify-icon>
+                    </a>
+                    <a href="{{ route('admin.review-chats.index') }}" id="footerReviewLink" style="display: none;">
+                        <span>Buka Semua Ulasan Produk</span>
+                        <iconify-icon icon="lucide:arrow-right" style="font-size: 13px;"></iconify-icon>
+                    </a>
+                </div>
+            </div>
+        </div>
 
         <button id="themeToggle" class="theme-toggle-btn" title="Ganti Tema" onclick="toggleTheme()">
             <!-- Sun icon -->
@@ -104,11 +191,59 @@
 </header>
 
 <script>
+    function toggleTopDropdown(e, menuId) {
+        e.stopPropagation();
+        const targetMenu = document.getElementById(menuId);
+        if (!targetMenu) return;
+
+        // Close all other popovers/dropdowns first
+        const allPopovers = document.querySelectorAll('.topbar-popover-menu, .user-dropdown-menu');
+        const isAlreadyOpen = targetMenu.classList.contains('show');
+
+        allPopovers.forEach(menu => menu.classList.remove('show'));
+        const chevron = document.getElementById('userDropdownChevron');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+
+        if (!isAlreadyOpen) {
+            targetMenu.classList.add('show');
+        }
+    }
+
+    function switchNotifTab(tabName) {
+        const tabBtnChat = document.getElementById('tabBtnChat');
+        const tabBtnReview = document.getElementById('tabBtnReview');
+        const chatPane = document.getElementById('topbar-chat-pane');
+        const reviewPane = document.getElementById('topbar-review-pane');
+        const footerChatLink = document.getElementById('footerChatLink');
+        const footerReviewLink = document.getElementById('footerReviewLink');
+
+        if (tabName === 'chat') {
+            tabBtnChat?.classList.add('active');
+            tabBtnReview?.classList.remove('active');
+            if (chatPane) chatPane.style.display = 'block';
+            if (reviewPane) reviewPane.style.display = 'none';
+            if (footerChatLink) footerChatLink.style.display = 'inline-flex';
+            if (footerReviewLink) footerReviewLink.style.display = 'none';
+        } else {
+            tabBtnReview?.classList.add('active');
+            tabBtnChat?.classList.remove('active');
+            if (chatPane) chatPane.style.display = 'none';
+            if (reviewPane) reviewPane.style.display = 'block';
+            if (footerChatLink) footerChatLink.style.display = 'none';
+            if (footerReviewLink) footerReviewLink.style.display = 'inline-flex';
+        }
+    }
+
     function toggleUserDropdown(e) {
         e.stopPropagation();
         const menu = document.getElementById('userDropdownMenu');
         const chevron = document.getElementById('userDropdownChevron');
         if (!menu) return;
+
+        // Close other topbar popovers
+        const otherPopovers = document.querySelectorAll('.topbar-popover-menu');
+        otherPopovers.forEach(p => p.classList.remove('show'));
+
         const isShown = menu.classList.contains('show');
         menu.classList.toggle('show');
         if (chevron) {
@@ -117,12 +252,17 @@
     }
 
     document.addEventListener('click', function(e) {
-        const container = document.querySelector('.user-dropdown-container');
-        const menu = document.getElementById('userDropdownMenu');
+        const openPopovers = document.querySelectorAll('.topbar-popover-menu.show, .user-dropdown-menu.show');
+        openPopovers.forEach(menu => {
+            if (!menu.contains(e.target) && !e.target.closest('.theme-toggle-btn') && !e.target.closest('.user-dropdown-btn')) {
+                menu.classList.remove('show');
+            }
+        });
+
         const chevron = document.getElementById('userDropdownChevron');
-        if (container && !container.contains(e.target) && menu && menu.classList.contains('show')) {
-            menu.classList.remove('show');
-            if (chevron) chevron.style.transform = 'rotate(0deg)';
+        const userMenu = document.getElementById('userDropdownMenu');
+        if (userMenu && !userMenu.classList.contains('show') && chevron) {
+            chevron.style.transform = 'rotate(0deg)';
         }
     });
 </script>

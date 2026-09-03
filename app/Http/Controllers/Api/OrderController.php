@@ -12,11 +12,28 @@ class OrderController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $orders = Order::with(['payment', 'expedition', 'items.product'])
+        $search = trim((string) ($request->input('search') ?? $request->input('q') ?? $request->input('query') ?? ''));
+
+        $orders = Order::with(['payment', 'expedition', 'items.product', 'address'])
             ->where('user_id', $request->user()->id)
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->status))
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('invoice_number', 'LIKE', "%{$search}%")
+                      ->orWhere('note', 'LIKE', "%{$search}%")
+                      ->orWhereHas('items', function ($itemQuery) use ($search) {
+                          $itemQuery->where('product_name', 'LIKE', "%{$search}%");
+                      })
+                      ->orWhereHas('address', function ($addrQuery) use ($search) {
+                          $addrQuery->where('receiver_name', 'LIKE', "%{$search}%")
+                                    ->orWhere('address', 'LIKE', "%{$search}%")
+                                    ->orWhere('notes', 'LIKE', "%{$search}%")
+                                    ->orWhere('city', 'LIKE', "%{$search}%");
+                      });
+                });
+            })
             ->latest()
-            ->paginate($request->integer('per_page', 10));
+            ->paginate($request->integer('per_page', $search !== '' ? 50 : 10));
 
         return response()->json($orders);
     }
@@ -48,9 +65,21 @@ class OrderController extends Controller
 
                         $order->trackings()->create([
                             'status' => Order::STATUS_PAID,
-                            'description' => 'Pembayaran berhasil diverifikasi oleh Midtrans.',
+                            'description' => 'Pembayaran berhasil diverifikasi oleh sistem.',
                             'location' => $order->address?->city ?? 'Sistem',
                         ]);
+
+                        try {
+                            $user = $order->user;
+                            \App\Models\Announcement::create([
+                                'title' => '📦 Pesanan Baru Dibayar!',
+                                'content' => "Pesanan #{$order->invoice_number} oleh " . ($user?->name ?? 'Pelanggan') . " sebesar Rp " . number_format((float)$order->total_amount, 0, ',', '.') . " telah berhasil dibayar. Mohon segera diproses.",
+                                'type' => 'order',
+                                'action_url' => route('admin.orders.show', $order->getRouteKey()),
+                            ]);
+                        } catch (\Exception $e) {
+                            // Log error silently
+                        }
                     });
                 } elseif (in_array($transactionStatus, ['expire', 'cancel', 'deny', 'failure'], true) || $isPastDeadline) {
                     DB::transaction(function () use ($order) {
@@ -160,6 +189,29 @@ class OrderController extends Controller
 
         return response()->json([
             'message' => $result['message'],
+            'order' => $order->fresh()->load(['items.product', 'payment', 'trackings', 'address', 'expedition']),
+        ]);
+    }
+
+    public function simulateCourierPod(Request $request, Order $order): JsonResponse
+    {
+        abort_if($order->user_id !== $request->user()->id, 403);
+
+        $receiver = $order->address?->receiver_name ?? ($order->user?->name ?? 'Pelanggan');
+        $city = $order->address?->city ?? 'Alamat Tujuan';
+        $courierName = $order->expedition?->name ?? 'Kurir Ekspedisi';
+
+        $order->update(['status' => Order::STATUS_ARRIVED]);
+
+        $order->trackings()->create([
+            'status'      => Order::STATUS_ARRIVED,
+            'description' => "Paket telah sampai di lokasi tujuan dan diserahkan oleh {$courierName} kepada [{$receiver}] (Ybs). Bukti foto serah terima (POD) otomatis terverifikasi sistem.",
+            'location'    => $city,
+            'proof_photo' => 'order_proofs/mock_pod_sample.jpg',
+        ]);
+
+        return response()->json([
+            'message' => 'Simulasi kurir berhasil! Bukti pengiriman (Auto-POD) otomatis terunggah.',
             'order' => $order->fresh()->load(['items.product', 'payment', 'trackings', 'address', 'expedition']),
         ]);
     }

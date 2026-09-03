@@ -16,15 +16,18 @@ class Setting extends Model
 
     public static function get(string $key, $default = null)
     {
-        $setting = self::where('key', $key)->first();
-        if (!$setting && $default !== null) {
-            $setting = self::create(['key' => $key, 'value' => (string) $default]);
-        }
-        return $setting ? $setting->value : $default;
+        return \Illuminate\Support\Facades\Cache::remember('setting_' . $key, 3600, function () use ($key, $default) {
+            $setting = self::where('key', $key)->first();
+            if (!$setting && $default !== null) {
+                $setting = self::create(['key' => $key, 'value' => (string) $default]);
+            }
+            return $setting ? $setting->value : $default;
+        });
     }
 
     public static function set(string $key, $value)
     {
+        \Illuminate\Support\Facades\Cache::forget('setting_' . $key);
         return self::updateOrCreate(
             ['key' => $key],
             ['value' => $value === null ? null : (string) $value]

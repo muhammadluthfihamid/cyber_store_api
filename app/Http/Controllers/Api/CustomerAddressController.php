@@ -68,10 +68,11 @@ class CustomerAddressController extends Controller
     private function validateAddress(Request $request): array
     {
         return $request->validate([
-            'label' => ['nullable', 'string', 'max:50'],
+            'label' => ['required', 'string', 'max:50'],
             'receiver_name' => ['required', 'string', 'max:100'],
-            'phone' => ['required', 'string', 'max:30'],
+            'phone' => ['required', 'string', 'min:9', 'max:30'],
             'address' => ['required', 'string'],
+            'notes' => ['nullable', 'string', 'max:500'],
             'province' => ['required', 'string', 'max:100'],
             'city' => ['required', 'string', 'max:100'],
             'district' => ['nullable', 'string', 'max:100'],
@@ -80,6 +81,14 @@ class CustomerAddressController extends Controller
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'is_default' => ['sometimes', 'boolean'],
+        ], [
+            'label.required' => 'Label alamat wajib diisi.',
+            'receiver_name.required' => 'Nama penerima wajib diisi.',
+            'phone.required' => 'Nomor handphone wajib diisi.',
+            'phone.min' => 'Nomor handphone minimal 9 digit.',
+            'address.required' => 'Alamat lengkap wajib diisi.',
+            'province.required' => 'Provinsi wajib diisi.',
+            'city.required' => 'Kota/Kabupaten wajib diisi.',
         ]);
     }
 

@@ -17,8 +17,10 @@ class NotificationController extends Controller
     {
         $user = $request->user();
 
-        // Sync global announcements to this user if not yet present in user_notifications
-        $announcements = Announcement::all();
+        // Sync global announcements (non-chat) to this user if not yet present in user_notifications
+        $announcements = Announcement::where(function ($q) {
+            $q->whereNull('type')->orWhere('type', '!=', 'chat');
+        })->get();
         foreach ($announcements as $announcement) {
             UserNotification::firstOrCreate([
                 'user_id'         => $user->id,

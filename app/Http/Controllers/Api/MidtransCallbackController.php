@@ -111,9 +111,21 @@ class MidtransCallbackController extends Controller
 
                     $order->trackings()->create([
                         'status' => Order::STATUS_PAID,
-                        'description' => 'Pembayaran berhasil diverifikasi oleh Midtrans.',
+                        'description' => 'Pembayaran berhasil diverifikasi oleh sistem.',
                         'location' => $order->address?->city ?? 'Sistem',
                     ]);
+
+                    try {
+                        $user = $order->user;
+                        \App\Models\Announcement::create([
+                            'title' => '📦 Pesanan Baru Dibayar!',
+                            'content' => "Pesanan #{$order->invoice_number} oleh " . ($user?->name ?? 'Pelanggan') . " sebesar Rp " . number_format((float)$order->total_amount, 0, ',', '.') . " telah berhasil dibayar. Mohon segera diproses.",
+                            'type' => 'order',
+                            'action_url' => route('admin.orders.show', $order->getRouteKey()),
+                        ]);
+                    } catch (\Exception $e) {
+                        Log::error('Failed to create order paid announcement: ' . $e->getMessage());
+                    }
 
                     Log::info("Order {$order->invoice_number} successfully paid.");
                 } elseif (in_array($transactionStatus, ['cancel', 'deny', 'failure', 'expire'], true)) {

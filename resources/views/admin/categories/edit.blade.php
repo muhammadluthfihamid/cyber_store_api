@@ -9,8 +9,12 @@
 <div style="max-width:600px;">
 <div class="card">
     <div class="card-header">
-        <span class="card-title">✏️ Edit: {{ $category->name }}</span>
-        <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">← Kembali</a>
+        <span class="card-title" style="display: flex; align-items: center; gap: 8px;">
+            <iconify-icon icon="flat-color-icons:edit-image" style="font-size: 22px;"></iconify-icon> Edit: {{ $category->name }}
+        </span>
+        <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <iconify-icon icon="flat-color-icons:previous"></iconify-icon> Kembali
+        </a>
     </div>
     <div class="card-body">
         <form id="categoryEditForm" method="POST" action="{{ route('admin.categories.update', $category) }}">
@@ -40,7 +44,9 @@
             </div>
             <div style="display:flex;gap:12px;justify-content:flex-end;">
                 <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">Batal</a>
-                <button type="button" class="btn btn-primary" onclick="confirmUpdate('categoryEditForm', 'Konfirmasi Edit Kategori', 'Apakah Anda yakin ingin menyimpan perubahan kategori ini?')">💾 Simpan Perubahan</button>
+                <button type="button" class="btn btn-primary" onclick="confirmUpdate('categoryEditForm', 'Konfirmasi Edit Kategori', 'Apakah Anda yakin ingin menyimpan perubahan kategori ini?')" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <iconify-icon icon="flat-color-icons:approval"></iconify-icon> Simpan Perubahan
+                </button>
             </div>
         </form>
     </div>

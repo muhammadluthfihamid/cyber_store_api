@@ -57,7 +57,7 @@ class PaymentController extends Controller
 
                 $payment->order->trackings()->create([
                     'status' => Order::STATUS_PAID,
-                    'description' => 'Pembayaran berhasil diverifikasi oleh Midtrans.',
+                    'description' => 'Pembayaran berhasil diverifikasi oleh sistem.',
                     'location' => $payment->order->address?->city ?? 'Sistem',
                 ]);
 

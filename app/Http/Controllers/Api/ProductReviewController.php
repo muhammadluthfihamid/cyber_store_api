@@ -104,6 +104,7 @@ class ProductReviewController extends Controller
             'rating' => $validated['rating'],
             'comment' => $validated['comment'] ?? null,
             'photo' => $photoValue,
+            'is_read' => false,
         ]);
 
         // Recalculate average rating & reviews count

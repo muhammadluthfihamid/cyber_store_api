@@ -41,11 +41,11 @@ class ApiEncryptionMiddleware
         // 2. Process request
         $response = $next($request);
 
-        // 3. Encrypt response if response is a JSON Response
-        if ($response instanceof \Illuminate\Http\JsonResponse) {
+        // 3. Encrypt response if client requested encryption (X-Encrypted header)
+        if ($response instanceof \Illuminate\Http\JsonResponse && $request->header('X-Encrypted') === 'true') {
             $data = $response->getData(true);
             
-            // Skip encryption for midtrans callback or local storage simulation
+            // Skip encryption for midtrans callback or if no encryption key configured
             if ($request->is('api/v1/payments/midtrans-callback') || !config('app.api_encryption_key')) {
                 return $response;
             }

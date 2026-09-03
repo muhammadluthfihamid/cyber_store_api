@@ -1,12 +1,16 @@
+@php
+    $storeName = \App\Models\Setting::get('store_name', 'Cyber Store');
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verifikasi Akun Berhasil — UBSI Store</title>
+    <title>Verifikasi Akun Berhasil — {{ $storeName }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
     <style>
         :root {
             --primary: #0d47a1;
@@ -130,15 +134,15 @@
 <body>
     <div class="verified-card">
         <div class="icon-wrapper">
-            ✓
+            <iconify-icon icon="flat-color-icons:ok" style="font-size: 44px;"></iconify-icon>
         </div>
         <h1 class="title">Verifikasi Berhasil!</h1>
         <p class="message">
-            Halo <strong>{{ $name }}</strong>, email Anda telah berhasil diverifikasi. Akun Anda sekarang telah aktif. Silakan kembali ke aplikasi <strong>Cyber Store</strong> di handphone Anda untuk masuk.
+            Halo <strong>{{ $name }}</strong>, email Anda telah berhasil diverifikasi. Akun Anda sekarang telah aktif. Silakan kembali ke aplikasi <strong>{{ $storeName }}</strong> di handphone Anda untuk masuk.
         </p>
-        <a href="cyberstore://" class="btn-ok">Buka Aplikasi Cyber Store</a>
+        <a href="cyberstore://" class="btn-ok">Buka Aplikasi {{ $storeName }}</a>
         <div class="footer">
-            © {{ date('Y') }} Cyber Store. Hak Cipta Dilindungi.
+            © {{ date('Y') }} {{ $storeName }}. Hak Cipta Dilindungi.
         </div>
     </div>
 

@@ -8,16 +8,24 @@
 
 @section('content')
 <!-- Notice Banner -->
-<div class="notice-banner">
-    <div class="notice-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-            <line x1="8" y1="21" x2="16" y2="21"></line>
-            <line x1="12" y1="17" x2="12" y2="21"></line>
-        </svg>
+<div class="notice-banner" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding: 14px 20px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 280px;">
+        <div class="notice-icon">
+            <iconify-icon icon="flat-color-icons:shop" style="font-size: 22px;"></iconify-icon>
+        </div>
+        <div style="font-size: 13px; color: #334155; line-height: 1.5;">
+            <strong>Selamat Datang Kembali, Admin!</strong> Berikut adalah ringkasan aktivitas penjualan, stok barang, serta pengguna toko {{ \App\Models\Setting::get('store_name', 'BSI Cyber Store') }} hari ini.
+        </div>
     </div>
-    <div style="font-size: 13px; color: #334155; line-height: 1.5;">
-        <strong>Selamat Datang Kembali, Admin!</strong> Berikut adalah ringkasan aktivitas penjualan, stok barang, serta pengguna toko {{ \App\Models\Setting::get('store_name', 'BSI Cyber Store') }} hari ini.
+    <div style="display: inline-flex; flex-direction: column; gap: 4px; background: var(--bg-card, #ffffff); padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border, #E2E8F0); box-shadow: 0 2px 6px rgba(0,0,0,0.03); white-space: nowrap;">
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text-primary, #0F172A);">
+            <iconify-icon icon="flat-color-icons:calendar" style="font-size: 16px;"></iconify-icon>
+            <span id="live-date-badge">{{ \Carbon\Carbon::now()->locale('id')->translatedFormat('l, d F Y') }}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: #0D47A1; font-family: monospace;">
+            <iconify-icon icon="flat-color-icons:clock" style="font-size: 16px;"></iconify-icon>
+            <span id="live-clock-badge">--:--:-- WIB</span>
+        </div>
     </div>
 </div>
 
@@ -89,9 +97,9 @@
     <div class="table-card" style="margin-bottom: 0;">
         <div class="table-card-header">
             <div style="font-weight: 800; font-size: 15px; color: #0f172a; display: flex; align-items: center; gap: 8px;">
-                <span>👥</span> Pengguna Terbaru
+                <iconify-icon icon="flat-color-icons:conference-call" style="font-size: 20px;"></iconify-icon> Pengguna Terbaru
             </div>
-            <a href="{{ route('admin.users.index') }}" style="font-size: 12px; font-weight: 700; color: #0B023E; text-decoration: none; background: #f1f5f9; padding: 6px 12px; border-radius: 8px;">Lihat Semua ›</a>
+            <a href="{{ route('admin.users.index') }}" style="font-size: 12px; font-weight: 700; color: #0B023E; text-decoration: none; background: #f1f5f9; padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">Lihat Semua <iconify-icon icon="lucide:chevron-right" style="font-size: 14px;"></iconify-icon></a>
         </div>
         <div style="overflow-x: auto;">
             @if($recent_users->isEmpty())
@@ -134,14 +142,14 @@
     <div class="table-card" style="margin-bottom: 0;">
         <div class="table-card-header">
             <div style="font-weight: 800; font-size: 15px; color: #0f172a; display: flex; align-items: center; gap: 8px;">
-                <span>⚠️</span> Stok Hampir Habis
+                <iconify-icon icon="flat-color-icons:warning" style="font-size: 20px;"></iconify-icon> Stok Hampir Habis
             </div>
-            <a href="{{ route('admin.products.index') }}" style="font-size: 12px; font-weight: 700; color: #0B023E; text-decoration: none; background: #f1f5f9; padding: 6px 12px; border-radius: 8px;">Lihat Semua ›</a>
+            <a href="{{ route('admin.products.index') }}" style="font-size: 12px; font-weight: 700; color: #0B023E; text-decoration: none; background: #f1f5f9; padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">Lihat Semua <iconify-icon icon="lucide:chevron-right" style="font-size: 14px;"></iconify-icon></a>
         </div>
         <div style="overflow-x: auto;">
             @if($low_stock_products->isEmpty())
             <div style="text-align: center; padding: 32px; color: #16a34a;">
-                <div style="font-size: 24px; margin-bottom: 4px;">✅</div>
+                <div style="margin-bottom: 4px; display: flex; justify-content: center;"><iconify-icon icon="flat-color-icons:ok" style="font-size: 32px;"></iconify-icon></div>
                 <div style="font-weight: 700;">Stok Aman</div>
                 <div style="font-size: 12px; color: #64748b;">Semua produk memiliki stok cukup</div>
             </div>
@@ -182,14 +190,14 @@
 <div class="table-card">
     <div class="table-card-header">
         <div style="font-weight: 800; font-size: 16px; color: #0f172a; display: flex; align-items: center; gap: 8px;">
-            <span>🛒</span> Pesanan Terbaru
+            <iconify-icon icon="flat-color-icons:shopping-cart" style="font-size: 20px;"></iconify-icon> Pesanan Terbaru
         </div>
-        <a href="{{ route('admin.orders.index') }}" style="font-size: 12px; font-weight: 700; color: #0B023E; text-decoration: none; background: #f1f5f9; padding: 6px 12px; border-radius: 8px;">Semua Pesanan ›</a>
+        <a href="{{ route('admin.orders.index') }}" style="font-size: 12px; font-weight: 700; color: #0B023E; text-decoration: none; background: #f1f5f9; padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">Semua Pesanan <iconify-icon icon="lucide:chevron-right" style="font-size: 14px;"></iconify-icon></a>
     </div>
     <div style="overflow-x: auto;" class="desktop-table-container">
         @if($recent_orders->isEmpty())
         <div style="text-align: center; padding: 40px; color: #94a3b8;">
-            <div style="font-size: 32px; margin-bottom: 8px;">📋</div>
+            <div style="margin-bottom: 8px; display: flex; justify-content: center;"><iconify-icon icon="flat-color-icons:opened-folder" style="font-size: 40px;"></iconify-icon></div>
             <div style="font-weight: 700; color: #475569;">Belum Ada Pesanan</div>
             <div style="font-size: 12.5px;">Pesanan dari pelanggan akan otomatis tampil di sini</div>
         </div>
@@ -238,7 +246,7 @@
                         Rp {{ number_format($order->grand_total, 0, ',', '.') }}
                     </td>
                     <td style="padding: 14px 20px; color: #64748b; font-size: 12.5px;">
-                        📅 {{ $order->created_at->format('d M Y, H:i') }}
+                        <span style="display: inline-flex; align-items: center; gap: 4px;"><iconify-icon icon="flat-color-icons:calendar" style="font-size: 14px;"></iconify-icon> {{ $order->created_at->format('d M Y, H:i') }}</span>
                     </td>
                 </tr>
                 @endforeach
@@ -252,18 +260,18 @@
         @foreach($recent_orders as $order)
         @php
         $statusLabels = [
-            'pending_payment' => 'Menunggu Bayar',
-            'paid' => 'Dibayar',
-            'packed' => 'Dikemas',
-            'shipped' => 'Dikirim',
-            'arrived' => 'Tiba',
-            'completed' => 'Selesai',
-            'cancelled' => 'Dibatalkan',
+        'pending_payment' => 'Menunggu Bayar',
+        'paid' => 'Dibayar',
+        'packed' => 'Dikemas',
+        'shipped' => 'Dikirim',
+        'arrived' => 'Tiba',
+        'completed' => 'Selesai',
+        'cancelled' => 'Dibatalkan',
         ];
         $badgeClass = match($order->status) {
-            'completed', 'paid' => 'badge-success-custom',
-            'pending_payment', 'packed', 'shipped' => 'badge-warning-custom',
-            default => 'badge-danger-custom'
+        'completed', 'paid' => 'badge-success-custom',
+        'pending_payment', 'packed', 'shipped' => 'badge-warning-custom',
+        default => 'badge-danger-custom'
         };
         @endphp
         <div class="mobile-dash-card">
@@ -275,35 +283,46 @@
                     {{ $statusLabels[$order->status] ?? ucfirst($order->status) }}
                 </span>
             </div>
-            <div style="font-weight: 700; font-size: 13px; color: #0f172a; margin-bottom: 6px;">
-                👤 {{ $order->user?->name ?? '-' }}
+            <div style="font-weight: 700; font-size: 13px; color: #0f172a; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                <iconify-icon icon="flat-color-icons:businessman" style="font-size: 16px;"></iconify-icon> {{ $order->user?->name ?? '-' }}
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #64748b;">
                 <span style="font-weight: 800; color: #0f172a; font-size: 13px;">
                     Rp {{ number_format($order->grand_total, 0, ',', '.') }}
                 </span>
-                <span>📅 {{ $order->created_at->format('d M Y') }}</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px;"><iconify-icon icon="flat-color-icons:calendar" style="font-size: 14px;"></iconify-icon> {{ $order->created_at->format('d M Y') }}</span>
             </div>
         </div>
         @endforeach
     </div>
 </div>
 
-<style>
-    .desktop-table-container { display: block; }
-    .mobile-dashboard-grid { display: none; padding: 14px; gap: 12px; flex-direction: column; }
-    .mobile-dash-card {
-        background: var(--bg-card, #ffffff);
-        border: 1px solid var(--border, #e2e8f0);
-        border-radius: 12px;
-        padding: 14px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+@push('scripts')
+<script>
+    function updateDashboardClock() {
+        const now = new Date();
+        const optionsDate = {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        };
+        const dateStr = now.toLocaleDateString('id-ID', optionsDate);
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const timeStr = `${hours}:${minutes}:${seconds} WIB`;
+
+        const dateEl = document.getElementById('live-date-badge');
+        const clockEl = document.getElementById('live-clock-badge');
+        if (dateEl) dateEl.textContent = dateStr;
+        if (clockEl) clockEl.textContent = timeStr;
     }
 
-    @media (max-width: 768px) {
-        .dashboard-grid { grid-template-columns: 1fr !important; }
-        .desktop-table-container { display: none !important; }
-        .mobile-dashboard-grid { display: flex !important; }
-    }
-</style>
+    document.addEventListener('DOMContentLoaded', function() {
+        updateDashboardClock();
+        setInterval(updateDashboardClock, 1000);
+    });
+</script>
+@endpush
 @endsection

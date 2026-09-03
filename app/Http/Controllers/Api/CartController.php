@@ -30,8 +30,12 @@ class CartController extends Controller
 
         $product = Product::where('is_active', true)->findOrFail($validated['product_id']);
 
+        if ($product->stock <= 0) {
+            return response()->json(['message' => "Stok produk {$product->name} saat ini sedang habis (0)."], 422);
+        }
+
         if ($product->stock < $validated['quantity']) {
-            return response()->json(['message' => 'Stok produk tidak mencukupi.'], 422);
+            return response()->json(['message' => "Stok produk {$product->name} hanya tersisa {$product->stock} unit, tidak mencukupi untuk {$validated['quantity']} item."], 422);
         }
 
         $cart = Cart::firstOrCreate(['user_id' => $request->user()->id]);
@@ -47,7 +51,7 @@ class CartController extends Controller
             $newQuantity = $item->quantity + $validated['quantity'];
 
             if ($product->stock < $newQuantity) {
-                return response()->json(['message' => 'Stok produk tidak mencukupi untuk jumlah baru.'], 422);
+                return response()->json(['message' => "Stok produk {$product->name} hanya tersisa {$product->stock} unit (di keranjang sudah ada {$item->quantity} item)."], 422);
             }
 
             $item->update(['quantity' => $newQuantity]);
@@ -65,13 +69,19 @@ class CartController extends Controller
     {
         $validated = $request->validate([
             'quantity' => ['required', 'integer', 'min:1'],
+            'size' => ['nullable', 'string', 'max:50'],
+            'color' => ['nullable', 'string', 'max:50'],
         ]);
 
         $cart = Cart::firstOrCreate(['user_id' => $request->user()->id]);
         $item = $cart->items()->where('id', $itemId)->firstOrFail();
 
+        if ($item->product->stock <= 0) {
+            return response()->json(['message' => "Stok produk {$item->product->name} saat ini sudah habis (0)."], 422);
+        }
+
         if ($item->product->stock < $validated['quantity']) {
-            return response()->json(['message' => 'Stok produk tidak mencukupi.'], 422);
+            return response()->json(['message' => "Stok produk {$item->product->name} hanya tersisa {$item->product->stock} unit."], 422);
         }
 
         $item->update($validated);

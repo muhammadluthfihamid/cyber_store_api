@@ -6,36 +6,199 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
+
 class ProductController extends Controller
 {
+    public static function flushRedisCache(): void
+    {
+        try {
+            $redis = Cache::store('redis');
+            $redis->increment('admin:products:version');
+            if (method_exists($redis, 'tags')) {
+                /** @var mixed $redis */
+                $redis->tags(['products-list'])->flush();
+            }
+        } catch (\Throwable $e) {
+            Cache::forget('admin:products:version');
+        }
+    }
+
     public function index(Request $request)
     {
-        $query = Product::with('category');
+        $search = trim((string)$request->query('search', ''));
+        $category = $request->query('category');
+        $status = $request->query('status');
+        $stockStatus = $request->query('stock_status');
+        $event = $request->query('event');
+        $page = (int)$request->query('page', 1);
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('sku', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
+        try {
+            $version = Cache::store('redis')->get('admin:products:version', 1);
+            $cacheKey = "admin:products:v{$version}:" . md5(json_encode([
+                'search' => $search,
+                'category' => $category,
+                'status' => $status,
+                'stock_status' => $stockStatus,
+                'event' => $event,
+                'page' => $page,
+            ]));
+
+            $cachedData = Cache::store('redis')->remember($cacheKey, now()->addMinutes(30), function () use ($search, $category, $status, $stockStatus, $event) {
+                $query = Product::query();
+
+                if ($search !== '') {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('sku', 'like', "%{$search}%")
+                            ->orWhere('description', 'like', "%{$search}%");
+                    });
+                }
+
+                if ($category !== null && $category !== '') {
+                    $query->where('category_id', $category);
+                }
+
+                if ($status !== null && $status !== '') {
+                    $query->where('is_active', $status === 'active');
+                }
+
+                if ($event === 'maba') {
+                    $query->where('is_event_maba', true);
+                }
+
+                if ($stockStatus === 'out_of_stock') {
+                    $query->where('stock', '<=', 0);
+                } elseif ($stockStatus === 'low_stock') {
+                    $query->where('stock', '>', 0)->where('stock', '<', 10);
+                }
+
+                $paginator = $query->latest('id')->paginate(15);
+                return [
+                    'ids' => $paginator->pluck('id')->toArray(),
+                    'total' => $paginator->total(),
+                    'per_page' => $paginator->perPage(),
+                    'current_page' => $paginator->currentPage(),
+                ];
+            });
+
+            $ids = $cachedData['ids'] ?? [];
+            $items = empty($ids)
+                ? collect()
+                : Product::with('category')
+                    ->whereIn('id', $ids)
+                    ->get()
+                    ->sortBy(fn ($p) => array_search($p->id, $ids))
+                    ->values();
+
+            $products = new LengthAwarePaginator(
+                $items,
+                $cachedData['total'] ?? 0,
+                $cachedData['per_page'] ?? 15,
+                $cachedData['current_page'] ?? 1,
+                [
+                    'path' => Paginator::resolveCurrentPath(),
+                    'query' => $request->query(),
+                ]
+            );
+        } catch (\Throwable $e) {
+            $query = Product::with('category');
+
+            if ($search !== '') {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('sku', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            if ($category !== null && $category !== '') {
+                $query->where('category_id', $category);
+            }
+
+            if ($status !== null && $status !== '') {
+                $query->where('is_active', $status === 'active');
+            }
+
+            if ($stockStatus === 'out_of_stock') {
+                $query->where('stock', '<=', 0);
+            } elseif ($stockStatus === 'low_stock') {
+                $query->where('stock', '>', 0)->where('stock', '<', 10);
+            }
+
+            $products = $query->latest()->paginate(15)->withQueryString();
+        }
+
+        $categories = Category::query()->where('is_active', true)->get();
+        $outOfStockCount = Product::query()->where('stock', '<=', 0)->count();
+        $lowStockCount = Product::query()->where('stock', '>', 0)->where('stock', '<', 10)->count();
+
+        return view('admin.products.index', compact('products', 'categories', 'outOfStockCount', 'lowStockCount'));
+    }
+
+    public function suggestions(Request $request)
+    {
+        $q = trim((string)$request->query('q', ''));
+
+        try {
+            $version = Cache::store('redis')->get('admin:products:version', 1);
+            $cacheKey = "admin:products:suggestions:v{$version}:" . md5($q);
+
+            $results = Cache::store('redis')->remember($cacheKey, now()->addMinutes(15), function () use ($q) {
+                $query = Product::with('category')->latest();
+                if ($q !== '') {
+                    $query->where(function ($w) use ($q) {
+                        $w->where('name', 'like', "%{$q}%")
+                          ->orWhere('sku', 'like', "%{$q}%")
+                          ->orWhere('description', 'like', "%{$q}%");
+                    });
+                }
+                return $query->take(8)->get()->map(function ($p) {
+                    $catName = $p->category?->name ?? 'Uncategorized';
+                    $priceFormatted = 'Rp ' . number_format($p->price, 0, ',', '.');
+                    $stockText = 'Stok: ' . $p->stock;
+
+                    return [
+                        'id' => $p->id,
+                        'title' => $p->name,
+                        'subtitle' => "SKU: {$p->sku} • {$catName} • {$priceFormatted}",
+                        'value' => $p->name,
+                        'badge' => $p->is_active ? $stockText : 'Nonaktif',
+                        'badge_color' => $p->is_active ? ($p->stock > 0 ? '#10B981' : '#EF4444') : '#64748B',
+                        'icon' => 'flat-color-icons:box',
+                    ];
+                });
+            });
+        } catch (\Throwable $e) {
+            $query = Product::with('category')->latest();
+            if ($q !== '') {
+                $query->where(function ($w) use ($q) {
+                    $w->where('name', 'like', "%{$q}%")
+                      ->orWhere('sku', 'like', "%{$q}%")
+                      ->orWhere('description', 'like', "%{$q}%");
+                });
+            }
+            $results = $query->take(8)->get()->map(function ($p) {
+                $catName = $p->category?->name ?? 'Uncategorized';
+                $priceFormatted = 'Rp ' . number_format($p->price, 0, ',', '.');
+                $stockText = 'Stok: ' . $p->stock;
+
+                return [
+                    'id' => $p->id,
+                    'title' => $p->name,
+                    'subtitle' => "SKU: {$p->sku} • {$catName} • {$priceFormatted}",
+                    'value' => $p->name,
+                    'badge' => $p->is_active ? $stockText : 'Nonaktif',
+                    'badge_color' => $p->is_active ? ($p->stock > 0 ? '#10B981' : '#EF4444') : '#64748B',
+                    'icon' => 'flat-color-icons:box',
+                ];
             });
         }
 
-        if ($request->filled('category')) {
-            $query->where('category_id', $request->category);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('is_active', $request->status === 'active');
-        }
-
-        $products = $query->latest()->paginate(15)->withQueryString();
-
-        $categories = Category::query()->where('is_active', true)->get();
-
-        return view('admin.products.index', compact('products', 'categories'));
+        return response()->json($results);
     }
 
     public function create()
@@ -60,12 +223,38 @@ class ProductController extends Controller
             'colors'         => ['nullable'],
             'is_active'      => ['boolean'],
             'is_recommended' => ['boolean'],
+            'is_event_maba'  => ['boolean'],
+            'maba_color_ganjil' => ['nullable', 'string', 'max:50'],
+            'maba_color_genap'  => ['nullable', 'string', 'max:50'],
+            'size_chart'     => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'main_photo'     => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'photo_2'        => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'photo_3'        => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'photo_4'        => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'photo_5'        => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'photo_6'        => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ], [
+            'main_photo.max'   => 'Ukuran Foto Utama tidak boleh lebih dari 2MB.',
+            'main_photo.image' => 'Berkas Foto Utama harus berupa file gambar.',
+            'main_photo.mimes' => 'Format Foto Utama harus jpg, jpeg, png, atau webp.',
+            'size_chart.max'   => 'Ukuran Foto Panduan Ukuran tidak boleh lebih dari 2MB.',
+            'size_chart.image' => 'Berkas Panduan Ukuran harus berupa file gambar.',
+            'size_chart.mimes' => 'Format Panduan Ukuran harus jpg, jpeg, png, atau webp.',
+            'photo_2.max'      => 'Ukuran Foto 2 tidak boleh lebih dari 2MB.',
+            'photo_2.image'    => 'Berkas Foto 2 harus berupa file gambar.',
+            'photo_2.mimes'    => 'Format Foto 2 harus jpg, jpeg, png, atau webp.',
+            'photo_3.max'      => 'Ukuran Foto 3 tidak boleh lebih dari 2MB.',
+            'photo_3.image'    => 'Berkas Foto 3 harus berupa file gambar.',
+            'photo_3.mimes'    => 'Format Foto 3 harus jpg, jpeg, png, atau webp.',
+            'photo_4.max'      => 'Ukuran Foto 4 tidak boleh lebih dari 2MB.',
+            'photo_4.image'    => 'Berkas Foto 4 harus berupa file gambar.',
+            'photo_4.mimes'    => 'Format Foto 4 harus jpg, jpeg, png, atau webp.',
+            'photo_5.max'      => 'Ukuran Foto 5 tidak boleh lebih dari 2MB.',
+            'photo_5.image'    => 'Berkas Foto 5 harus berupa file gambar.',
+            'photo_5.mimes'    => 'Format Foto 5 harus jpg, jpeg, png, atau webp.',
+            'photo_6.max'      => 'Ukuran Foto 6 tidak boleh lebih dari 2MB.',
+            'photo_6.image'    => 'Berkas Foto 6 harus berupa file gambar.',
+            'photo_6.mimes'    => 'Format Foto 6 harus jpg, jpeg, png, atau webp.',
         ]);
 
         $slug = Str::slug($validated['name']);
@@ -77,7 +266,7 @@ class ProductController extends Controller
 
         // Parse sizes & colors dari input form (array atau comma-separated string)
         $sizes = [];
-        if (!empty($validated['sizes'])) {
+        if ($request->boolean('has_sizes', true) && !empty($validated['sizes'])) {
             $sizeInput = is_array($validated['sizes']) ? $validated['sizes'] : explode(',', $validated['sizes']);
             $sizes = array_filter(array_map(function ($item) {
                 return is_string($item) ? trim($item) : (is_array($item) ? ($item['name'] ?? '') : '');
@@ -108,6 +297,11 @@ class ProductController extends Controller
             $mainPhotoPath = $request->file('main_photo')->store('products', 'public');
         }
 
+        $sizeChartPath = null;
+        if (!empty($sizes) && $request->hasFile('size_chart')) {
+            $sizeChartPath = $request->file('size_chart')->store('products/size_charts', 'public');
+        }
+
         $rating = isset($validated['rating']) && $validated['rating'] !== null && $validated['rating'] !== '' ? (float) $validated['rating'] : 0.0;
 
         $product = Product::create([
@@ -122,8 +316,12 @@ class ProductController extends Controller
             'weight'         => $validated['weight'],
             'sizes'          => array_values($sizes),
             'colors'         => $colors,
+            'size_chart'     => $sizeChartPath,
             'is_active'      => $request->boolean('is_active', true),
             'is_recommended' => $request->boolean('is_recommended', false),
+            'is_event_maba'  => $request->boolean('is_event_maba', false),
+            'maba_color_ganjil' => $request->boolean('is_event_maba') ? $request->input('maba_color_ganjil', 'Putih') : null,
+            'maba_color_genap'  => $request->boolean('is_event_maba') ? $request->input('maba_color_genap', 'Biru') : null,
             'main_photo'     => $mainPhotoPath,
             'rating'         => $rating,
             'reviews_count'  => 0,
@@ -174,6 +372,18 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')->with('success', 'Produk berhasil ditambahkan.');
     }
 
+    public function show(Product $product)
+    {
+        $product->load(['category', 'images', 'reviews.user']);
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'data'    => $product,
+            ]);
+        }
+        return view('admin.products.show', compact('product'));
+    }
+
     public function edit(Product $product)
     {
         $categories = Category::query()->where('is_active', true)->get();
@@ -196,6 +406,11 @@ class ProductController extends Controller
             'colors'         => ['nullable'],
             'is_active'      => ['boolean'],
             'is_recommended' => ['boolean'],
+            'is_event_maba'  => ['boolean'],
+            'maba_color_ganjil' => ['nullable', 'string', 'max:50'],
+            'maba_color_genap'  => ['nullable', 'string', 'max:50'],
+            'size_chart'     => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'remove_size_chart' => ['nullable', 'boolean'],
             'main_photo'     => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'photo_2'        => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'photo_3'        => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
@@ -207,6 +422,28 @@ class ProductController extends Controller
             'remove_photo_4' => ['nullable', 'boolean'],
             'remove_photo_5' => ['nullable', 'boolean'],
             'remove_photo_6' => ['nullable', 'boolean'],
+        ], [
+            'main_photo.max'   => 'Ukuran Foto Utama tidak boleh lebih dari 2MB.',
+            'main_photo.image' => 'Berkas Foto Utama harus berupa file gambar.',
+            'main_photo.mimes' => 'Format Foto Utama harus jpg, jpeg, png, atau webp.',
+            'size_chart.max'   => 'Ukuran Foto Panduan Ukuran tidak boleh lebih dari 2MB.',
+            'size_chart.image' => 'Berkas Panduan Ukuran harus berupa file gambar.',
+            'size_chart.mimes' => 'Format Panduan Ukuran harus jpg, jpeg, png, atau webp.',
+            'photo_2.max'      => 'Ukuran Foto 2 tidak boleh lebih dari 2MB.',
+            'photo_2.image'    => 'Berkas Foto 2 harus berupa file gambar.',
+            'photo_2.mimes'    => 'Format Foto 2 harus jpg, jpeg, png, atau webp.',
+            'photo_3.max'      => 'Ukuran Foto 3 tidak boleh lebih dari 2MB.',
+            'photo_3.image'    => 'Berkas Foto 3 harus berupa file gambar.',
+            'photo_3.mimes'    => 'Format Foto 3 harus jpg, jpeg, png, atau webp.',
+            'photo_4.max'      => 'Ukuran Foto 4 tidak boleh lebih dari 2MB.',
+            'photo_4.image'    => 'Berkas Foto 4 harus berupa file gambar.',
+            'photo_4.mimes'    => 'Format Foto 4 harus jpg, jpeg, png, atau webp.',
+            'photo_5.max'      => 'Ukuran Foto 5 tidak boleh lebih dari 2MB.',
+            'photo_5.image'    => 'Berkas Foto 5 harus berupa file gambar.',
+            'photo_5.mimes'    => 'Format Foto 5 harus jpg, jpeg, png, atau webp.',
+            'photo_6.max'      => 'Ukuran Foto 6 tidak boleh lebih dari 2MB.',
+            'photo_6.image'    => 'Berkas Foto 6 harus berupa file gambar.',
+            'photo_6.mimes'    => 'Format Foto 6 harus jpg, jpeg, png, atau webp.',
         ]);
 
         // Update slug hanya jika nama berubah
@@ -222,7 +459,7 @@ class ProductController extends Controller
 
         // Parse sizes & colors dari input form (array atau comma-separated string)
         $sizes = [];
-        if (!empty($validated['sizes'])) {
+        if ($request->boolean('has_sizes', true) && !empty($validated['sizes'])) {
             $sizeInput = is_array($validated['sizes']) ? $validated['sizes'] : explode(',', $validated['sizes']);
             $sizes = array_filter(array_map(function ($item) {
                 return is_string($item) ? trim($item) : (is_array($item) ? ($item['name'] ?? '') : '');
@@ -265,6 +502,9 @@ class ProductController extends Controller
             'colors'         => $colors,
             'is_active'      => $request->boolean('is_active'),
             'is_recommended' => $request->boolean('is_recommended'),
+            'is_event_maba'  => $request->boolean('is_event_maba'),
+            'maba_color_ganjil' => $request->boolean('is_event_maba') ? $request->input('maba_color_ganjil', 'Putih') : null,
+            'maba_color_genap'  => $request->boolean('is_event_maba') ? $request->input('maba_color_genap', 'Biru') : null,
         ];
 
         if ($request->hasFile('main_photo')) {
@@ -272,11 +512,25 @@ class ProductController extends Controller
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($product->main_photo);
             }
             $data['main_photo'] = $request->file('main_photo')->store('products', 'public');
-        }
-
-        if ($request->boolean('remove_main_photo') && $product->main_photo) {
+        } elseif ($request->boolean('remove_main_photo') && $product->main_photo) {
             \Illuminate\Support\Facades\Storage::disk('public')->delete($product->main_photo);
             $data['main_photo'] = null;
+        }
+
+        if (empty($sizes)) {
+            // Jika produk tidak memiliki ukuran, otomatis hapus file panduan ukuran jika ada
+            if ($product->size_chart) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($product->size_chart);
+            }
+            $data['size_chart'] = null;
+        } elseif ($request->hasFile('size_chart')) {
+            if ($product->size_chart) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($product->size_chart);
+            }
+            $data['size_chart'] = $request->file('size_chart')->store('products/size_charts', 'public');
+        } elseif ($request->boolean('remove_size_chart') && $product->size_chart) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($product->size_chart);
+            $data['size_chart'] = null;
         }
 
         $product->update($data);
@@ -462,10 +716,62 @@ class ProductController extends Controller
     {
         $request->validate([
             'file' => ['required', 'file', 'max:10240'],
+            'images.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'images_zip' => ['nullable', 'file', 'mimes:zip', 'max:51200'],
         ], [
             'file.required' => 'File impor wajib dipilih.',
-            'file.max' => 'Ukuran file maksimal adalah 10 MB.',
+            'file.max' => 'Ukuran file data maksimal adalah 10 MB.',
+            'images.*.image' => 'Setiap berkas gambar harus berformat gambar (jpg, jpeg, png, webp).',
+            'images.*.max' => 'Ukuran setiap gambar maksimal adalah 5 MB.',
+            'images_zip.mimes' => 'Berkas kompresi gambar harus berformat .zip.',
+            'images_zip.max' => 'Ukuran file ZIP maksimal adalah 50 MB.',
         ]);
+
+        // ── Process Uploaded Images (from images[] or images_zip) ──────────────
+        $uploadedImagesMap = [];
+
+        // 1. Process multiple image uploads (images[])
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $imgFile) {
+                if ($imgFile && $imgFile->isValid()) {
+                    $origName = $imgFile->getClientOriginalName();
+                    $path = $imgFile->storeAs('products', $origName, 'public');
+
+                    $uploadedImagesMap[strtolower($origName)] = $path;
+                    $uploadedImagesMap[strtolower(basename($origName))] = $path;
+                    $uploadedImagesMap[strtolower(pathinfo($origName, PATHINFO_FILENAME))] = $path;
+                }
+            }
+        }
+
+        // 2. Process ZIP file upload (images_zip)
+        if ($request->hasFile('images_zip')) {
+            $zipFile = $request->file('images_zip');
+            if ($zipFile && $zipFile->isValid() && class_exists('\ZipArchive')) {
+                $zip = new \ZipArchive();
+                if ($zip->open($zipFile->getRealPath()) === true) {
+                    for ($i = 0; $i < $zip->numFiles; $i++) {
+                        $stat = $zip->statIndex($i);
+                        $entryName = $stat['name'];
+                        $ext = strtolower(pathinfo($entryName, PATHINFO_EXTENSION));
+
+                        if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'])) {
+                            $baseName = basename($entryName);
+                            $content = $zip->getFromIndex($i);
+
+                            if (!empty($content) && !empty($baseName)) {
+                                $targetPath = 'products/' . $baseName;
+                                \Illuminate\Support\Facades\Storage::disk('public')->put($targetPath, $content);
+
+                                $uploadedImagesMap[strtolower($baseName)] = $targetPath;
+                                $uploadedImagesMap[strtolower(pathinfo($baseName, PATHINFO_FILENAME))] = $targetPath;
+                            }
+                        }
+                    }
+                    $zip->close();
+                }
+            }
+        }
 
         $file = $request->file('file');
         $extension = strtolower($file->getClientOriginalExtension());
@@ -546,7 +852,36 @@ class ProductController extends Controller
             $weight = $colMap['berat'] !== false && isset($data[$colMap['berat']]) ? intval(trim($data[$colMap['berat']])) : 100;
             $sizesStr = $colMap['ukuran'] !== false && isset($data[$colMap['ukuran']]) ? trim($data[$colMap['ukuran']]) : '';
             $colorsStr = $colMap['warna'] !== false && isset($data[$colMap['warna']]) ? trim($data[$colMap['warna']]) : '';
-            $mainPhoto = $colMap['foto_utama'] !== false && isset($data[$colMap['foto_utama']]) && trim($data[$colMap['foto_utama']]) !== '' ? trim($data[$colMap['foto_utama']]) : 'products/default.jpg';
+            
+            // Photo mapping
+            $rawPhoto = $colMap['foto_utama'] !== false && isset($data[$colMap['foto_utama']]) && trim($data[$colMap['foto_utama']]) !== ''
+                ? trim($data[$colMap['foto_utama']])
+                : '';
+
+            $mainPhoto = 'products/default.jpg';
+
+            if (!empty($rawPhoto)) {
+                $cleanRawName = strtolower(trim(basename($rawPhoto)));
+                $rawFileNameWithoutExt = strtolower(pathinfo($cleanRawName, PATHINFO_FILENAME));
+
+                if (isset($uploadedImagesMap[$cleanRawName])) {
+                    $mainPhoto = $uploadedImagesMap[$cleanRawName];
+                } elseif (isset($uploadedImagesMap[$rawFileNameWithoutExt])) {
+                    $mainPhoto = $uploadedImagesMap[$rawFileNameWithoutExt];
+                } elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists('products/' . basename($rawPhoto))) {
+                    $mainPhoto = 'products/' . basename($rawPhoto);
+                } elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists($rawPhoto)) {
+                    $mainPhoto = $rawPhoto;
+                } else {
+                    if (str_starts_with($rawPhoto, 'http://') || str_starts_with($rawPhoto, 'https://')) {
+                        $mainPhoto = $rawPhoto;
+                    } elseif (str_contains($rawPhoto, '/')) {
+                        $mainPhoto = $rawPhoto;
+                    } else {
+                        $mainPhoto = 'products/' . $rawPhoto;
+                    }
+                }
+            }
 
             // Basic validation
             if (empty($name) || empty($categoryName) || $price <= 0) {
@@ -620,6 +955,10 @@ class ProductController extends Controller
         }
 
         $message = "Berhasil mengimpor $importedCount produk.";
+        if (!empty($uploadedImagesMap)) {
+            $countImages = count(array_unique($uploadedImagesMap));
+            $message .= " ($countImages berkas foto berhasil diunggah).";
+        }
         if ($skippedCount > 0) {
             $message .= " $skippedCount baris diabaikan karena kesalahan data.";
         }
