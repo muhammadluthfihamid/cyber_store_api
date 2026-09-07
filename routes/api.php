@@ -26,6 +26,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:10,10');
     Route::post('/resend-otp', [AuthController::class, 'resendOtp'])->middleware('throttle:5,5');
     Route::post('/auth/google', [GoogleAuthController::class, 'loginWithGoogle'])->middleware('throttle:10,1');
+    Route::match(['get', 'post'], '/auth/google/callback', [GoogleAuthController::class, 'handleCallback'])->middleware('throttle:10,1');
 
     // ── Forgot Password (alur 3 langkah, dengan rate limiting) ─────────
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:5,15');

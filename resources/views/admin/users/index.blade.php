@@ -160,8 +160,6 @@
                                     <iconify-icon icon="flat-color-icons:key" style="font-size: 16px;"></iconify-icon>
                                 </button>
                             </form>
-                            @endif
-                            @if(auth()->user()->role==='superadmin')
                             <button type="button" class="btn btn-danger btn-sm btn-icon" title="Hapus" data-url="{{ route('admin.users.destroy',$user) }}" data-name="{{ $user->name }}" onclick="confirmDelete(this.dataset.url, this.dataset.name)" {{ $user->id===auth()->id()?'disabled':'' }}>
                                 <iconify-icon icon="fluent-emoji-flat:wastebasket" style="font-size: 16px;"></iconify-icon>
                             </button>
@@ -228,8 +226,6 @@
                             <iconify-icon icon="flat-color-icons:key" style="font-size: 15px;"></iconify-icon>
                         </button>
                     </form>
-                    @endif
-                    @if(auth()->user()->role==='superadmin')
                     <button type="button" class="btn btn-danger btn-sm btn-icon" title="Hapus" data-url="{{ route('admin.users.destroy',$user) }}" data-name="{{ $user->name }}" onclick="confirmDelete(this.dataset.url, this.dataset.name)" {{ $user->id===auth()->id()?'disabled':'' }}>
                         <iconify-icon icon="fluent-emoji-flat:wastebasket" style="font-size: 15px;"></iconify-icon>
                     </button>

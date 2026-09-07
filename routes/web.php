@@ -41,7 +41,6 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::patch('/users/{user}/toggle', [UserController::class, 'toggleActive'])->name('users.toggle');
     Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])
-        ->middleware('superadmin')
         ->name('users.destroy');
 
     // ── Categories ────────────────────────────────────────────────────────────

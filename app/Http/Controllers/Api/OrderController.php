@@ -14,7 +14,7 @@ class OrderController extends Controller
     {
         $search = trim((string) ($request->input('search') ?? $request->input('q') ?? $request->input('query') ?? ''));
 
-        $orders = Order::with(['payment', 'expedition', 'items.product', 'address'])
+        $orders = Order::with(['payment', 'expedition', 'items.product', 'address', 'trackings'])
             ->where('user_id', $request->user()->id)
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->status))
             ->when($search !== '', function ($query) use ($search) {

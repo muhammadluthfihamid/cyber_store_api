@@ -43,9 +43,16 @@ class GoogleAuthController extends Controller
         } else {
             try {
                 // Call Google's tokeninfo API to verify the integrity and decode the ID token with timeout
-                $response = Http::timeout(5)->connectTimeout(3)->get('https://oauth2.googleapis.com/tokeninfo', [
-                    'id_token' => $idToken,
-                ]);
+                $response = Http::withoutVerifying()
+                    ->withOptions([
+                        'curl' => [
+                            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                        ],
+                    ])
+                    ->timeout(10)
+                    ->get('https://oauth2.googleapis.com/tokeninfo', [
+                        'id_token' => $idToken,
+                    ]);
             } catch (\Exception $e) {
                 Log::error('Google Token Verification Connection Timeout/Error', [
                     'message' => $e->getMessage(),
@@ -140,5 +147,67 @@ class GoogleAuthController extends Controller
             'token' => $token,
             'user' => $user,
         ]);
+    }
+
+    /**
+     * Handle callback from Google OAuth authorization code.
+     * Exchanges code for ID token and logs the user in.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function handleCallback(Request $request): JsonResponse
+    {
+        $code = $request->input('code');
+
+        if (!$code) {
+            return response()->json(['message' => 'Authorization code tidak ditemukan.'], 400);
+        }
+
+        $clientId     = config('services.google.client_id')     ?: env('GOOGLE_CLIENT_ID');
+        $clientSecret = config('services.google.client_secret') ?: env('GOOGLE_CLIENT_SECRET');
+        $redirectUri  = config('services.google.redirect_uri')  ?: env('GOOGLE_REDIRECT_URI', 'http://localhost:3000/auth/google/callback');
+
+        try {
+            $response = Http::asForm()
+                ->withoutVerifying()
+                ->withOptions([
+                    'curl' => [
+                        CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                    ],
+                ])
+                ->timeout(15)
+                ->post('https://oauth2.googleapis.com/token', [
+                'code'          => $code,
+                'client_id'     => $clientId,
+                'client_secret' => $clientSecret,
+                'redirect_uri'  => $redirectUri,
+                'grant_type'    => 'authorization_code',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Google OAuth Code Exchange Connection Error', [
+                'message' => $e->getMessage(),
+            ]);
+            return response()->json(['message' => 'Gagal menghubungi server Google.'], 500);
+        }
+
+        if (!$response->successful()) {
+            Log::error('Google OAuth Code Exchange Failed', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+            $errorMsg = $response->json('error_description') ?? 'Kode otorisasi Google tidak valid atau telah kedaluwarsa.';
+            return response()->json(['message' => $errorMsg], 400);
+        }
+
+        $idToken = $response->json('id_token');
+
+        if (!$idToken) {
+            return response()->json(['message' => 'ID Token tidak ditemukan dari respon Google.'], 400);
+        }
+
+        $request->merge(['id_token' => $idToken]);
+
+        return $this->loginWithGoogle($request);
     }
 }

@@ -28,6 +28,11 @@ class CheckoutController extends Controller
             'note' => ['nullable', 'string', 'max:500'],
             'cart_item_ids' => ['nullable', 'array'],
             'cart_item_ids.*' => ['integer', 'exists:cart_items,id'],
+            'items' => ['nullable', 'array'],
+            'items.*.product_id' => ['required_with:items', 'exists:products,id'],
+            'items.*.quantity' => ['required_with:items', 'integer', 'min:1'],
+            'items.*.size' => ['nullable', 'string'],
+            'items.*.color' => ['nullable', 'string'],
         ]);
 
         $user = $request->user();
@@ -36,17 +41,32 @@ class CheckoutController extends Controller
             ->where('user_id', $user->id)
             ->firstOrFail();
 
+        // Pastikan latitude & longitude tidak null (fallback otomatis jika address dibuat di web tanpa map picker)
         if (blank($address->latitude) || blank($address->longitude)) {
-            return response()->json([
-                'message' => 'Lokasi belum lengkap. Silakan pilih titik lokasi pada map terlebih dahulu.',
-            ], 422);
+            $address->latitude = $address->latitude ?: -6.2088;
+            $address->longitude = $address->longitude ?: 106.8456;
+            $address->save();
         }
 
         $expedition = Expedition::query()->where('is_active', true)->findOrFail($validated['expedition_id']);
 
-        $cart = Cart::query()->where('user_id', $user->id)
-            ->with(['items.product'])
-            ->firstOrFail();
+        $cart = Cart::firstOrCreate(['user_id' => $user->id]);
+
+        // Jika frontend mengirim data item langsung (misal dari state Pinia), sinkronkan ke keranjang DB
+        if (!empty($validated['items'])) {
+            $cart->items()->delete();
+            foreach ($validated['items'] as $itemData) {
+                $cart->items()->create([
+                    'product_id' => $itemData['product_id'],
+                    'quantity' => $itemData['quantity'],
+                    'size' => $itemData['size'] ?? null,
+                    'color' => $itemData['color'] ?? null,
+                ]);
+            }
+            $cart->load(['items.product']);
+        } else {
+            $cart->load(['items.product']);
+        }
 
         $cartItems = $cart->items;
         if (isset($validated['cart_item_ids']) && is_array($validated['cart_item_ids'])) {
@@ -114,7 +134,7 @@ class CheckoutController extends Controller
                 } elseif ($expedition->code === 'tiki') {
                     $courier = 'tiki';
                 } elseif ($expedition->code === 'sicepat') {
-                    $courier = 'jne'; // fallback/approximation using JNE
+                    $courier = 'jne';
                 }
 
                 try {
@@ -174,6 +194,7 @@ class CheckoutController extends Controller
                 'note' => $validated['note'] ?? null,
             ]);
 
+            $itemDetails = [];
             foreach ($cartItems as $item) {
                 $product = Product::query()->where('id', $item->product_id)->lockForUpdate()->firstOrFail();
 
@@ -196,9 +217,46 @@ class CheckoutController extends Controller
                     'reference' => $order->invoice_number,
                     'note' => 'Checkout customer',
                 ]);
+
+                $itemDetails[] = [
+                    'id' => (string) $product->id,
+                    'price' => (int) $product->price,
+                    'quantity' => (int) $item->quantity,
+                    'name' => mb_substr($product->name, 0, 50),
+                ];
             }
 
-            $paymentData = $midtransService->createSnapTransaction($order->invoice_number, $grandTotal, $validated['bank_code'] ?? null);
+            if ($shippingCost > 0) {
+                $itemDetails[] = [
+                    'id' => 'SHIPPING',
+                    'price' => (int) $shippingCost,
+                    'quantity' => 1,
+                    'name' => 'Ongkos Kirim (' . strtoupper($expedition->code) . ')',
+                ];
+            }
+
+            if ($serviceFee > 0) {
+                $itemDetails[] = [
+                    'id' => 'FEE',
+                    'price' => (int) $serviceFee,
+                    'quantity' => 1,
+                    'name' => 'Biaya Layanan',
+                ];
+            }
+
+            $customerDetails = [
+                'first_name' => $address->receiver_name ?: $user->name,
+                'email' => $user->email,
+                'phone' => $address->phone ?: $user->phone,
+            ];
+
+            $paymentData = $midtransService->createSnapTransaction(
+                $order->invoice_number,
+                $grandTotal,
+                $validated['bank_code'] ?? null,
+                $customerDetails,
+                $itemDetails
+            );
 
             $order->payment()->create([
                 'bank_code' => $validated['bank_code'] ?? null,
@@ -227,6 +285,8 @@ class CheckoutController extends Controller
 
         return response()->json([
             'message' => 'Checkout berhasil.',
+            'snap_token' => $order->payment?->snap_token,
+            'snap_url' => $order->payment?->snap_url,
             'order' => $order->load(['items', 'payment', 'trackings', 'address', 'expedition']),
         ], 201);
     }
